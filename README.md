@@ -1,4 +1,4 @@
-# What is the relationship between size of a gathering and transmission risk? An exercise for EPI260
+# What is the relationship between size of a gathering and transmission risk? An exercise for EPI260, Spring 2 2020
 
 * Compare 2, 4, 8, 16 people.
 * What do we mean by transmission risk? 
