@@ -7,5 +7,7 @@
 * What simplifying assumptions can we make? 
 * What data exist to inform our inputs? 
 
+Here's a desktop entry: 
+
 Test formula: 
 <img src="https://render.githubusercontent.com/render/math?math=e^{i \pi} = -1">
