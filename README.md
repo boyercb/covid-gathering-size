@@ -13,7 +13,7 @@ __groupsim.R__ calculates the number of infections that occur during a gathering
 Steps: 
 
 * Assign each person in the group into an epidemiological compartment (S, I, or R) based on the poulation prevalence 
-* For each infectious person, draw an infectiousness _nu<sub>i</sub>_ according to a gamma distribution with mean _R<sub>0</sub>_ and overdispersion parameter _k_
+* For each infectious person, draw an infectiousness _$\nu$<sub>i</sub>_ according to a gamma distribution with mean _R<sub>0</sub>_ and overdispersion parameter _k_
 * Calculate the individual infection rate _beta<sub>i</sub>_ contributed by each infectious person as _nu<sub>i</sub> / D_, where _D_ is the duration of infectiousness
 * Calculate the probability that a susceptible person gets infected according to an exponential distribution: _p<sub>inf</sub> = 1-exp(-sum(beta<sub>i</sub>) T)_, where _T_ is the duration of the gathering. 
 * Calculate how many of the susceptibles become infected using a binomial draw with this _p<sub>inf</sub>_
