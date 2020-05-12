@@ -4,32 +4,59 @@
 
 library(tidyverse) 
 
-R0 <- 2.5 # Basic reproduction number
-nuscale <- 1 # Overdispersion scale for individual infectiousness
+reps <- 1000 # Number of simulations to run 
 
-dinf <- 5*24 # Duration of infectiousness in hours
-dgroup <- 2 # Duration of gathering in hours
-
-groupsize <- 16 # Group size 
-popprev <- c(S=90, I=5, R=5) # S/I/R prevalence in population
+parms <- c(
+	R0=2.5,       # Basic reproduction number
+	nuscale=1,    # Overdispersion scale for individual infectiousness 
+	dinf=5*24,    # Duration of infectiousness in hours
+	dgroup=2,     # Duration of gathering in hours
+	groupsize=16, # Group size 
+	popS=90,      # Susceptible prevalence in the population (unnormalized ok)
+	popI=5,       # Infectious prevalence in the population (unnormalized ok)
+	popR=5        # Recovered prevalence in the population (unnormalized ok)
+	)
 
 # =============================================================================
 # Calculate new infections
 # =============================================================================
 
-popprev <- popprev/sum(popprev) # Normalize population prevalence
+getnewinf <- function(parms){
 
-# Draw infection states for the group from the population: 
-groupchar <- t(rmultinom(1, groupsize, popprev)) %>% as.data.frame %>% unlist
+	with(as.list(parms), {
 
-# Draw nu values (individual R0) for each infectious person:
-nuvec <- rgamma(groupchar["I"], shape=R0/nuscale, scale=nuscale)
+		# Collect population prevalence into a vector 
+		popprev <- c(S=popS, I=popI, R=popR)
 
-# Calculate infection rates for each infectious person: 
-betavec <- nuvec/dinf
+		 # Normalize population prevalence
+		popprev <- popprev/sum(popprev)
 
-# Calculate the probability that a susceptible person gets infected: 
-pinf <- 1-exp(-sum(betavec)*dgroup)
+		# Draw infection states for the group from the population: 
+		groupstates <- t(rmultinom(1, groupsize, popprev)) %>% as.data.frame %>% unlist
 
-# Calculate the number of new infections 
-newinf <- rbinom(1, groupchar["S"], pinf)
+		# Draw nu values (individual R0) for each infectious person:
+		nuvec <- rgamma(groupstates["I"], shape=R0/nuscale, scale=nuscale)
+
+		# Calculate infection rates for each infectious person: 
+		betavec <- nuvec/dinf
+
+		# Calculate the probability that a susceptible person gets infected: 
+		pinf <- 1-exp(-sum(betavec)*dgroup)
+
+		# Calculate the number of new infections 
+		newinf <- rbinom(1, groupstates["S"], pinf)
+
+		return(newinf)
+
+	})
+
+}
+
+
+newinfvec <- rep(NA,reps)
+for(indexA in 1:reps){
+	newinfvec[indexA] <- getnewinf(parms)
+
+}
+
+
