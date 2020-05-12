@@ -8,7 +8,7 @@
 * What data exist to inform our inputs? 
 
 
-__groupsim.R__ calculates the number of infections that occur during a gathering. The user specifies _R<sub>0</sub>_, the gamma dispersion of infectiousness, the duration of infectiousness, the duration of the gathering, the group size, and the proportion of the population that's susceptible, infectious, or recovered. 
+__groupsim.R__ calculates the number of infections that occur during a gathering. The user specifies _R<sub>0</sub>_, the dispersion of infectiousness (scale parameter of the gamma distribution), the duration of infectiousness, the duration of the gathering, the group size, and the proportion of the population that's susceptible, infectious, or recovered. 
 
 Steps: 
 
