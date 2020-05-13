@@ -28,11 +28,29 @@ c(0,0,0,1)
 # =============================================================================
 
 
+# Now keep track of number of infections:
 
+# 0
+# 1
+# 2
+# 3
 
+p <- 0.1 # Prior prevalence of infectiousness:
+q <- 0.2 # Probability of transmission
 
+priorprob <- c(
+	(1-p)^3,
+	3*p*(1-p)^2,
+	3*p^2*(1-p),
+	p^3
+	)
 
-
+transmat <- t(matrix(c(
+	c(1,0,0,0),
+	c(0,(1-q)^2,q*(1-q),q^2),
+	c(0,0,0,0),
+	c(0,0,0,0)
+),nrow=4))
 
 
 
