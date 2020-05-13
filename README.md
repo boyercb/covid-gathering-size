@@ -19,5 +19,5 @@ Steps:
 * Calculate how many of the susceptibles become infected using a binomial draw with this _p<sub>inf</sub>_
 
 
-Test formula: 
-<img src="https://render.githubusercontent.com/render/math?math=e^{i \pi} = -1">
+[comment]: <> Test formula: 
+[comment]: <> <img src="https://render.githubusercontent.com/render/math?math=e^{i \pi} = -1">
