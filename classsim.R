@@ -2,7 +2,7 @@
 # Group size 2 
 # =============================================================================
 
-# group types 
+# Group types:
 # 00
 # 01
 # 10
@@ -27,9 +27,9 @@ c(0,0,0,1)
 # Group size 3 
 # =============================================================================
 
+# Now keep track of number of infections, rather than group type:
 
-# Now keep track of number of infections:
-
+# Possibilities:
 # 0
 # 1
 # 2
@@ -51,6 +51,8 @@ transmat <- t(matrix(c(
 	c(0,0,(1-q)^2,1-(1-q)^2),
 	c(0,0,0,1)
 ),nrow=4))
+
+
 
 
 
