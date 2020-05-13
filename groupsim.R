@@ -2,24 +2,38 @@
 # Import and define key parameters
 # =============================================================================
 
+# Import packages
 library(tidyverse) 
 
-reps <- 1000 # Number of simulations to run 
+# Define number of sims to run per parameter set 
+reps <- 500 
 
-parms <- c(
-	R0=2.5,       # Basic reproduction number
-	nuscale=1,    # Overdispersion scale for individual infectiousness 
-	dinf=5*24,    # Duration of infectiousness in hours
-	dgroup=2,     # Duration of gathering in hours
-	groupsize=16, # Group size 
-	popS=90,      # Susceptible prevalence in the population (unnormalized ok)
-	popI=5,       # Infectious prevalence in the population (unnormalized ok)
-	popR=5        # Recovered prevalence in the population (unnormalized ok)
-	)
+# Define parameter values/ranges: 
+R0rng <- 2.5       # Basic reproduction number
+nuscalerng <- 1    # Overdispersion for nu
+dinfrng <- 5*24    # Duration of infectiousness (hrs)
+dgrouprng <- 2     # Duration of gathering (hrs)
+groupsizerng <- seq(2,100,2) # Group size 
+popSrng <- 90      # S prevalence in the population (unnormalized ok)
+popIrng <- 5       # I prevalence in the population (unnormalized ok)
+popRrng <- 5       # R prevalence in the population (unnormalized ok)
+
+# Collect parameter values into a data frame: 
+parmsdf <- expand.grid(
+	R0=R0rng,
+	nuscale=nuscalerng,
+	dinf=dinfrng,
+	dgroup=dgrouprng,
+	groupsize=groupsizerng,
+	popS=popSrng,
+	popI=popIrng,
+	popR=popRrng)
 
 # =============================================================================
-# Calculate new infections
+# Define functions to simulate transmission
 # =============================================================================
+
+# Define function to generate the number of new infections generated at a gathering:
 
 getnewinf <- function(parms){
 
@@ -52,11 +66,44 @@ getnewinf <- function(parms){
 
 }
 
+# Define a function to repeatedly calculate the number of new infections generated at a gathering for the same parameter set: 
 
-newinfvec <- rep(NA,reps)
-for(indexA in 1:reps){
-	newinfvec[indexA] <- getnewinf(parms)
-
+getnewinfvec <- function(parms,reps){
+	outvec <- rep(NA, reps) # Initialize an output vector
+	for(indexA in 1:reps){
+		outvec[indexA] <- getnewinf(parms) # Simulate new infections
+	}
+	return(outvec)
 }
 
+
+# =============================================================================
+# Run simulation
+# =============================================================================
+
+# Simulate the number of new infections for each parameter set: 
+
+ninfdf <- parmsdf %>%
+	mutate(parmset=1:n()) %>% # Assign an index to each parameter set (row)
+	split(.$parmset) %>% # Split each parameter set (row) into its own list
+	map(~ cbind( 
+		map_dfr(seq_len(reps), function(x).),
+		data.frame(ninf=getnewinfvec(as.vector(.), reps))
+	)) %>% # Repeat the parameter set 'reps' times and bind the simulated infections as a new column 
+	map(~ mutate(., rep=1:n())) %>% # Assign an index to each simulation
+	bind_rows() # Bind everything back into a single data frarme 
+
+# =============================================================================
+# Visualize output
+# =============================================================================
+
+# Visualize the output (mean and 95% prediction interval): 
+figninfdf <- ninfdf %>% 
+	group_by(groupsize) %>%
+	summarise(ninf_mean=mean(ninf), ninf_lwr=quantile(ninf,0.025), ninf_upr=quantile(ninf,0.975)) %>%
+	ggplot(aes(x=groupsize, y=ninf_mean)) + 
+		geom_errorbar(aes(ymin=ninf_lwr, ymax=ninf_upr), width=0.4, alpha=0.3) + 
+		geom_point() + 
+		geom_line(stat="smooth", method="loess", span=1) + 
+		theme_minimal() 
 
