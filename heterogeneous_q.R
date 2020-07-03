@@ -5,7 +5,7 @@ dgp <- function(N,
                 ps,
                 pi,
                 T = 1,
-                D = 1,
+                D = 10,
                 nu_dist = function(x)
                   rgamma(x, 0.45, 0.58)) {  # <-- This can be changed to whatever distribution we want!
   # draw random sample of attendees from population of
