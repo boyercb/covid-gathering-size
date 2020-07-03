@@ -1,56 +1,100 @@
 # This function simulates a gathering of size N drawn from a source population
 # in which the prevalence of susceptibility and infection are given by ps and pi
-# respectively. The function also allows us to specify the distribution for q.
+# respectively. The function also allows us to specify the distribution for nu.
 dgp <- function(N,
                 ps,
                 pi,
-                q_dist = function(x)
-                  rbeta(x, 1, 1)) {  # <-- This can be changed to whatever distribution we want!
+                T = 1,
+                D = 1,
+                nu_dist = function(x)
+                  rgamma(x, 0.45, 0.58)) {  # <-- This can be changed to whatever distribution we want!
   # draw random sample of attendees from population of
   # 1. susceptibles 
   # 2. infecteds
   # 3. recovereds
-  y <- rmultinom(N, 1, c(ps, pi, 1 - ps - pi))
+  y <- rmultinom(1, N, c(ps, pi, 1 - ps - pi))
+  y <- as.vector(y)
   
-  # sum up the number attending from each category and rename
-  v <- rowSums(y)
-  names(v) <- c("S", "I", "R")
+  # rename to reflect compartments
+  names(y) <- c("S", "I", "R")
   
-  # also keep track of original sample 
-  y <- colSums(y * 1:3)
+  # draw infectiousness (nu) for each infected
+  nu <- nu_dist(y["I"]) 
   
-  # loop over all the susceptibles
-  dI <- vector()
-  for (i in 1:v["S"]) {
-    # each has I contacts, draw a q for each of these contacts
-    q <- q_dist(v["I"]) 
-    
-    # flip q-probability coin to decide if contact leads to infection
-    k <- rbinom(v["I"], 1, q)
-    
-    # if at least one contact leads to infection the susceptible is infected
-    dI[i] <- I(sum(k) > 0)
-  }
+  # calculate probability of infection assuming homogeneous mixing
+  q <- 1 - exp(-sum(nu) * (T/D))
   
-  # calculate total number of new infections caused by the gathering
-  delta <- sum(dI)
+  # flip S q-probability coins to determine number who get infected
+  delta <- rbinom(1, y["S"], q)
   
   # return results
   return(list(
     "y" = y,
-    "dI" = as.numeric(dI),
+    "q" = q,
     "delta" = delta
   ))
 }
 
-# Example - gathering of size 10 from population in which 90% are susceptible,
-# 5% are infected, and 5% are recovered
-dgp(10, 0.9, 0.05)
 
-# Example - different prior distribution for q
-dgp(10, 0.9, 0.05, function (x) rbeta(x, 0.5, 0.5))
+library(ggplot2)
+
+df <- data.frame(
+  nu = rgamma(1000, 0.45, 0.58)
+)
+
+ggplot(df, aes(x = nu)) + 
+  geom_histogram()
+
+df <- 
+expand.grid(
+  N = seq(2, 100),
+  pi = seq(0.001, 0.09, 0.001)
+)
+
+df$delta <-
+  map2_dbl(df$N,
+       df$pi,
+       function(x, y) {
+         replicate(1000, {
+           sim <- dgp(x, 0.9, y)
+           sim$delta
+         }) %>% mean()
+       })
+  
+ggplot(filter(df, N <= 20), aes(x = N, y = pi, z = delta)) +
+  geom_contour_filled(binwidth = 1)
+  
+
+df <- 
+  expand.grid(
+    N = seq(2, 20),
+    pi = seq(0.001, 0.09, 0.001),
+    phi = seq(0.1, 0.5, 0.1),
+    r0 = seq(0.5, 2.5, 0.5)
+  )
+
+pb <- txtProgressBar(max = nrow(df), initial = NA, style = 3)
+
+df$delta <-
+  pmap_dbl(
+  list(
+    N = df$N,
+    pi = df$pi,
+    phi = df$phi,
+    r0 = df$r0
+  ),
+  function(N, pi, phi, r0) {
+    i <- getTxtProgressBar(pb)
+    setTxtProgressBar(pb, ifelse(is.na(i), 1, i + 1))
+    replicate(1000, {
+      sim <- dgp(N, 0.9, pi, nu_dist = function(x) rgamma(x, phi, r0))
+      sim$delta
+    }) %>% mean()
+  })
+
+ggplot(df, aes(x = N, y = pi, z = delta)) +
+  facet_grid(r0 ~ phi) +
+  geom_contour_filled(binwidth = 1)
 
 
-# TODO: run this a bunch of times under different values of N, ps, pi and
-# different distributions of q and use results to calculate expected number of
-# secondary cases, variance/spread of number of secondary cases created, etc.
+
