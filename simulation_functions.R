@@ -60,3 +60,7 @@ summarize_dgp <- function(x) {
     "sd" = sd(x)
   )
 }
+
+expected_new_cases <- function(N, ps, pi, r0, phi, T = 1, D = 10) {
+  N * ps * (1 - (pi * ((1 + (r0 * T) / (phi * D))^(-phi) - 1) + 1)^N)
+}
