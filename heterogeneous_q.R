@@ -37,7 +37,7 @@ sim1_results <-
       setTxtProgressBar(pb, ifelse(is.na(i), 1, i + 1))
       
       sim <- dgp(N, ps, pi, sims = SIMS)
-      summarize_dgp(sim)
+      summarize_dgp(sim$r_eff)
     }
   )
 
@@ -73,10 +73,10 @@ sim2_results <-
           pi = pi,
           sims = SIMS,
           nu_dist = function(x)
-            rgamma(length(x), x * phi, phi /  r0)
+            rgamma(x, phi, phi /  r0)
         )
       
-      summarize_dgp(sim)
+      summarize_dgp(sim$r_eff)
     })
 
 close(pb)
