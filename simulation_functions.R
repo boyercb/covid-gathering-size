@@ -37,7 +37,11 @@ dgp <- function(N,
       S = mat[, "S"],
       I = mat[, "I"],
       R = mat[, "R"],
-      MoreArgs = list(nu_dist = nu_dist)
+      MoreArgs = list(
+        T = T,
+        D = D,
+        nu_dist = nu_dist
+      )
     )
   
   # calculate total number infected at gathering
@@ -62,12 +66,14 @@ sim_infections <- function(N,
                            S,
                            I,
                            R,
+                           T = 1,
+                           D = 10,
                            nu_dist = function(x)
                              rgamma(x, 0.16, 0.16 / 2.5)) {
   
   if (I != 0) {
     # draw number to infect using hierarchical poisson approach
-    r_i <- rpois(I, nu_dist(I))
+    r_i <- rpois(I, nu_dist(I) * T / D)
     
     # cap maximum possible secondary infections at size of gathering minus 1
     r_i <- ifelse(r_i > N-1, N-1, r_i)
