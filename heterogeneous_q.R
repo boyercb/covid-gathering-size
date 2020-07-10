@@ -27,10 +27,15 @@ sim1_params <-
 
 sim1_params$ps <- 1 - sim1_params$pi  
 
+pb <- txtProgressBar(max = nrow(sim1_params), initial = NA, style = 3)
+
 sim1_results <-
   pmap_dfr(
     as.list(sim1_params),
     function(N, ps, pi) {
+      i <- getTxtProgressBar(pb)
+      setTxtProgressBar(pb, ifelse(is.na(i), 1, i + 1))
+      
       sim <- dgp(N, ps, pi, sims = SIMS)
       summarize_dgp(sim)
     }
@@ -51,7 +56,7 @@ sim2_params <-
 
 sim2_params$ps <- 1 - sim2_params$pi  
 
-pb <- txtProgressBar(max = nrow(df), initial = NA, style = 3)
+pb <- txtProgressBar(max = nrow(sim2_params), initial = NA, style = 3)
 
 sim2_results <-
   pmap_dfr(
