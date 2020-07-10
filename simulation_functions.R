@@ -6,8 +6,8 @@
 dgp <- function(N,
                 ps,
                 pi,
-                T = 1,
-                D = 10,
+                T = 5,
+                D = 5,
                 sims = 1,
                 nu_dist = function(x)
                   rgamma(x, 0.16, 0.16 / 2.5)) {  # <-- This can be changed to whatever distribution we want!
@@ -73,8 +73,8 @@ sim_infections <- function(N,
                            S,
                            I,
                            R,
-                           T = 1,
-                           D = 10,
+                           T = 5,
+                           D = 5,
                            nu_dist = function(x)
                              rgamma(x, 0.16, 0.16 / 2.5)) {
   
