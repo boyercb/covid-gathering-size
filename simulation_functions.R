@@ -44,6 +44,13 @@ dgp <- function(N,
       )
     )
   
+  # subset among gatherings in which an infected attended
+  r_eff <- unlist(r[which(mat[, "I"] > 0)])
+  
+  if (length(r_eff) == 0) {
+    r_eff <- 0
+  }
+  
   # calculate total number infected at gathering
   delta <- sapply(r, sum)
   mat <- cbind(mat, delta)
@@ -52,7 +59,7 @@ dgp <- function(N,
   res <- list(
     "SIR" = mat,
     "r" = unlist(r),
-    "r_eff" = unlist(r[which(mat[, "I"] > 0)]), 
+    "r_eff" = r_eff, 
     "delta" = delta
   )
   
