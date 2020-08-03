@@ -36,7 +36,7 @@ sim1_results <-
       i <- getTxtProgressBar(pb)
       setTxtProgressBar(pb, ifelse(is.na(i), 1, i + 1))
       
-      sim <- dgp(N, ps, pi, sims = SIMS)
+      sim <- dgp(N, ps, pi, sims = SIMS, type = "probability")
       summarize_dgp(sim$r_eff)
     }
   )
@@ -105,27 +105,28 @@ phi_labs <- c(
 
 # Plot 1: using HK parameters what is the expected number of secondary cases
 # when varying N and pi
-ggplot(sim1, aes(x = N, y = pi, fill = mean)) +
+ggplot(filter(sim1, pi > 0.01), aes(x = N, y = pi, fill = mean)) +
   geom_tile() +
-  scale_fill_viridis_b(
+  scale_fill_viridis_c(
     name = bquote("Expected\nnew cases E["*Delta*I*"]"),
-    breaks = seq(1, 35, 1)
   ) +
   coord_cartesian(expand = F) +
   labs(
     x = "Size of gathering (N)",
     y = bquote("Prevalence of infection ("*p[i]*")")
-  ) +
-  guides(fill=guide_legend(ncol = 2))
+  ) 
 
 
 # Plot 2: additionally vary dispersion and mean
-ggplot(sim2, aes(x = N, y = pi, fill = mean)) +
+ggplot(sim2, aes(x = log(N), y = log(pi), fill = mean, z = mean_exact, width = 1, height = 0.01)) +
   facet_grid(factor(r0, labels = r0_labs) ~ factor(phi, labels = phi_labs),
              labeller = label_parsed) +
   geom_tile() +
+  geom_contour(breaks = c(1)) +
   scale_fill_viridis_c(
-    name = bquote("Expected\nnew cases E[" * Delta * I * "]")
+    name = bquote("Expected\nnew cases E[" * Delta * I * "]"),
+    breaks = seq(1, 70, 3),
+    option = "A"
   ) +
   coord_cartesian(expand = F) +
   labs(
@@ -150,5 +151,3 @@ ggplot(sim2, aes(x = N, y = pi, fill = sd)) +
     y = bquote("Prevalence of infection (" * p[i] * ")")
   ) +
   guides(fill=guide_legend(ncol = 2))
-
-
