@@ -41,7 +41,7 @@ dgp <- function(N,
   } else if (type == "probability") {
     # if not defined set default beta prior
     if (is.null(prior)) {
-      prior <- function(x) rbeta(x, 0.5, 0.95)
+      prior <- function(x) rbeta(x, 0.08, 0.92)
     }
     
     # draw infectiousness probability (q) for each infected and simulate
