@@ -12,9 +12,21 @@ dgp <- function(N,
                 type = "rate",
                 prior = NULL) {  # <-- This can be changed to whatever distribution we want!
   
-  # sample attendees from source population with given prevalence of
-  # susceptibility and infection
-  mat <- draw_SIR_attendees(N, ps, pi, sims)
+  if (ps == 1 & pi == 0) {
+    # assume 1 infected attends each gathering
+    mat <- matrix(
+      rep(c(N-1, 1, 0), each = sims),
+      nrow = sims, 
+      ncol = 3
+    )
+    
+    # rename to reflect compartments
+    colnames(mat) <- c("S", "I", "R")
+  } else {
+    # sample attendees from source population with given prevalence of
+    # susceptibility and infection
+    mat <- draw_SIR_attendees(N, ps, pi, sims)
+  }
   
   if (type == "rate") {
     # if not defined set default gamma prior
