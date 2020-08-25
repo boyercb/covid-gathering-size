@@ -8,7 +8,7 @@
 //    http://mc-stan.org/users/interfaces/rstan.html
 //    https://github.com/stan-dev/rstan/wiki/RStan-Getting-Started
 //
-
+beta_proportion()
 // The input data is a vector 'y' of length 'N'.
 data {
   int<lower=0> N;
