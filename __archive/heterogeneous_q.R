@@ -13,8 +13,8 @@ PI_SEQ <- seq(0.001, 0.09, 0.001)  # population prevalence of infection
 PS_SEQ <- 1 - PI_SEQ               # population prevalence of susceptibles
                                    # (NOTE: for now assume no recovereds)  
 
-PHI_SEQ <- seq(0.2, 1, 0.2)        # dispersion parameter 
-R0_SEQ <- seq(0.5, 2.5, 0.5)       # mean number of secondary cases
+# PHI_SEQ <- seq(0.2, 1, 0.2)        # dispersion parameter 
+# R0_SEQ <- seq(0.5, 2.5, 0.5)       # mean number of secondary cases
 
   
 # simulation 1 - use HK parameters, vary N and pi -------------------------

@@ -180,6 +180,12 @@ simulate_probabilities <- function(N,
     # susceptible and p = probability of infection given contact (q)
     for (k in 1:I) {
       r_eff[k] <- rbinom(1, S - E, q_i[k])
+      if (is.na(r_eff[k])) {
+        print(q_i[k])
+        print(paste0("N: ", N, " S: ", S, " I: ", I, " R: ", R))
+        print(paste0("E: ", E))
+        
+      }
       E <- E + r_eff[k]
     }
   } else {
@@ -254,4 +260,10 @@ dgp_one_infected <- function(N,
   return(res)
 }
 
+# distribution functions for binomial and beta-binomial distributions
+binom_cdf <- function(x, size, p) pbinom(x, size, p)
+betabinom_cdf <- function(x, size, p, phi) rmutil::pbetabinom(x, size, p, phi)
+
+binom_pmf <- function(x, size, p) dbinom(x, size, p)
+betabinom_pmf <- function(x, size, p, phi) rmutil::dbetabinom(x, size, p, phi)
 
