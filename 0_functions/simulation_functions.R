@@ -36,7 +36,7 @@ dgp <- function(N,
     
     # draw infectiousness rate (nu) for each infected and simulate sequence of
     # infections to get effective r for each infected]
-    r <-
+    X <-
       mapply(
         simulate_rates,
         N = N,
@@ -58,7 +58,7 @@ dgp <- function(N,
     
     # draw infectiousness probability (q) for each infected and simulate
     # sequence of infections to get effective r for each infected]
-    r <-
+    X <-
       mapply(
         simulate_probabilities,
         N = N,
@@ -73,21 +73,21 @@ dgp <- function(N,
   }
   
   # subset among gatherings in which an infected attended
-  r_eff <- unlist(r[which(mat[, "I"] > 0)])
+  X_eff <- unlist(X[which(mat[, "I"] > 0)])
   
-  if (length(r_eff) == 0) {
-    r_eff <- 0
+  if (length(X_eff) == 0) {
+    X_eff <- 0
   }
   
   # calculate total number infected at gathering
-  delta <- sapply(r, sum)
+  delta <- sapply(X, sum)
   mat <- cbind(mat, delta)
 
   # return results
   res <- list(
     "SIR" = mat,
-    "r" = unlist(r),
-    "r_eff" = r_eff, 
+    "X" = unlist(X),
+    "X_eff" = X_eff, 
     "delta" = delta
   )
   
@@ -139,20 +139,20 @@ simulate_rates <- function(N,
     
     # initialize counters
     E <- 0
-    r_eff <- vector()
+    X <- vector()
     
     # loop over infecteds and determine number of successful secondary cases
     # using draw from hypergeometric distribution where m = # of remaining
     # susceptible (success state) and n = # of recovered, exposed or already
     # infected (failure state)
     for (i in 1:I) {
-      r_eff[i] <- rhyper(1, S - E, E + I + R - 1, r_i[i])
-      E <- E + r_eff[i]
+      X[i] <- rhyper(1, S - E, E + I + R - 1, r_i[i])
+      E <- E + X[i]
     }
   } else {
-    r_eff <- 0
+    X <- 0
   }
-  return(r_eff)
+  return(X)
 }
 
 
@@ -173,25 +173,19 @@ simulate_probabilities <- function(N,
     
     # initialize counters
     E <- 0
-    r_eff <- vector()
+    X <- vector()
     
     # loop over infecteds and determine number of successful secondary cases
     # using draw from binomial distribution where N = # of remaining
     # susceptible and p = probability of infection given contact (q)
     for (k in 1:I) {
-      r_eff[k] <- rbinom(1, S - E, q_i[k])
-      if (is.na(r_eff[k])) {
-        print(q_i[k])
-        print(paste0("N: ", N, " S: ", S, " I: ", I, " R: ", R))
-        print(paste0("E: ", E))
-        
-      }
-      E <- E + r_eff[k]
+      X[k] <- rbinom(1, S - E, q_i[k])
+      E <- E + X[k]
     }
   } else {
-    r_eff <- 0
+    X <- 0
   }
-  return(r_eff)
+  return(X)
 }
 
 
@@ -223,8 +217,8 @@ dgp_one_infected <- function(N,
   colnames(mat) <- c("S", "I", "R")
   
   # draw infectiousness (nu) for each infected and simulate sequence of
-  # infections to get effective r for each infected]
-  r <-
+  # infections to get effective X for each infected]
+  X <-
     mapply(
       sim_infections,
       N = N,
@@ -239,21 +233,21 @@ dgp_one_infected <- function(N,
     )
   
   # subset among gatherings in which an infected attended
-  r_eff <- unlist(r[which(mat[, "I"] > 0)])
+  X_eff <- unlist(X[which(mat[, "I"] > 0)])
   
   if (length(r_eff) == 0) {
-    r_eff <- 0
+    X_eff <- 0
   }
   
   # calculate total number infected at gathering
-  delta <- sapply(r, sum)
+  delta <- sapply(X, sum)
   mat <- cbind(mat, delta)
   
   # return results
   res <- list(
     "SIR" = mat,
-    "r" = unlist(r),
-    "r_eff" = r_eff, 
+    "X" = unlist(X),
+    "X_eff" = X_eff, 
     "delta" = delta
   )
   
