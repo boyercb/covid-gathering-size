@@ -23,8 +23,8 @@ sim_results <-
       setTxtProgressBar(pb, ifelse(is.na(i), 1, i + 1))
       sim <- dgp(N, ps, pi, sims = SIMS, type = "probability", prior = function(x) rbeta(x, 0.086 * phi, phi * 0.914))
       list(
-        "r_eff_table" = table(sim$r_eff),
-        "r_eff_mean" = mean(sim$r_eff),
+        "X_eff_table" = table(sim$X_eff),
+        "X_eff_mean" = mean(sim$X_eff),
         "delta_table" = table(sim$delta),
         "delta_mean" = mean(sim$delta)
       )
@@ -36,11 +36,11 @@ close(pb)
 
 # plot: expected secondary cases per index case (Rg) ----------------------
 
-sim_r_eff_mean <- 
-  cbind(sim_params, "mean" = sapply(sim_results, get, x = "r_eff_mean"))
+sim_X_eff_mean <- 
+  cbind(sim_params, "mean" = sapply(sim_results, get, x = "X_eff_mean"))
 
-sim_r_eff_mean <-
-  sim_r_eff_mean %>%
+sim_X_eff_mean <-
+  sim_X_eff_mean %>%
   filter(pr %in% c(0, 0.05, 0.10, 0.15, 0.20)) %>%
   filter(phi == 1) %>%
   mutate(
@@ -59,8 +59,8 @@ sim_r_eff_mean <-
     )),
   )
 
-p_sim_r_eff_mean <- 
-  ggplot(sim_r_eff_mean, aes(
+p_sim_X_eff_mean <- 
+  ggplot(sim_X_eff_mean, aes(
   x = N,
   y = mean,
   fill = pr,
@@ -91,20 +91,20 @@ p_sim_r_eff_mean <-
        x = "Gathering size (N)") +
   gatherings_theme() 
 
-pdf("3_results/sim_r_eff_mean.pdf", width = 10, height = 6)
-print(p_sim_r_eff_mean)
+pdf("3_results/sim_X_eff_mean.pdf", width = 10, height = 6)
+print(p_sim_X_eff_mean)
 dev.off()  
 
 
 # plot: probability of Rg >= 1 --------------------------------------------
 
-sim_r_eff_table <- 
-  cbind(sim_params, lapply(sim_results, get, x = "r_eff_table") %>% bind_rows())
+sim_X_eff_table <- 
+  cbind(sim_params, lapply(sim_results, get, x = "X_eff_table") %>% bind_rows())
 
-sim_r_eff_table <- 
-  sim_r_eff_table %>%
+sim_X_eff_table <- 
+  sim_X_eff_table %>%
   mutate(
-    across(`0`:`29`, function (x) x / rowSums(select(sim_r_eff_table, `0`:`29`), na.rm = T))
+    across(`0`:`29`, function (x) x / rowSums(select(sim_X_eff_table, `0`:`29`), na.rm = T))
   ) %>%
   pivot_longer(
     `0`:`29`,
@@ -129,8 +129,8 @@ sim_r_eff_table <-
   )
 
 
-p_sim_r_eff_table <- 
-  ggplot(sim_r_eff_table, aes(
+p_sim_X_eff_table <- 
+  ggplot(sim_X_eff_table, aes(
   x = N,
   y = pr,
   fill = 1 - value,
@@ -159,8 +159,8 @@ p_sim_r_eff_table <-
   gatherings_theme() + 
   theme(legend.key.width = unit(1, "cm"))
 
-pdf("3_results/sim_r_eff_table.pdf", width = 10, height = 6)
-print(p_sim_r_eff_table)
+pdf("3_results/sim_X_eff_table.pdf", width = 10, height = 6)
+print(p_sim_X_eff_table)
 dev.off()  
 
 
