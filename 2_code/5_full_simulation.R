@@ -1,7 +1,7 @@
 N_SEQ <- seq(2, 30)                    # size of gatherings
 PI_SEQ <- seq(0.005, 0.02, 0.005)      # population prevalence of infection
-PR_SEQ <- seq(0, 0.20, 0.01)
-PHI_SEQ <- c(0.1, 1, 10, 100)
+PR_SEQ <- seq(0, 0.20, 0.01)           # population prevalence of immunity
+PHI_SEQ <- c(0.1, 1, 10, 100)          # range of dispersion parameter phi
 
 sim_params <-
   expand.grid(
@@ -39,6 +39,15 @@ close(pb)
 sim_X_eff_mean <- 
   cbind(sim_params, "mean" = sapply(sim_results, get, x = "X_eff_mean"))
 
+# Eva, I think what you'd want to do here is:
+#   1. left join with empirical distribution of gathering sizes from BBC Pandemic
+#   2. calculate weighted mean by multiplying probability of gathering size by X_eff at that size
+
+# I think this will give us an estimate of R_g or gathering's contribution to R_t
+# then we can just plot before and after intervention and use simulation to give us 
+# uncertainty range in R_g
+
+
 sim_X_eff_mean <-
   sim_X_eff_mean %>%
   filter(pr %in% c(0, 0.05, 0.10, 0.15, 0.20)) %>%
@@ -73,15 +82,11 @@ p_sim_X_eff_mean <-
   geom_smooth(se = F, method = "lm") +
   scale_fill_viridis_d(
     name = "Immune (%)",
-    #trans = scales::sqrt_trans(),
-    #breaks = c(0.05, 0.25, 0.6),
     option = "C",
     labels = label_parse()
   ) +
   scale_color_viridis_d(
     name = "Immune (%)",
-    #trans = scales::sqrt_trans(),
-    #breaks = c(0.05, 0.25, 0.6),
     option = "C",
     labels = label_parse()
   ) +
@@ -143,14 +148,10 @@ p_sim_X_eff_table <-
   geom_tile() +
   scale_fill_viridis_c(
     name = bquote(P(X[i] > 0)),
-    #trans = scales::sqrt_trans(),
-    #breaks = c(0.05, 0.25, 0.6),
     option = "C",
   ) +
   scale_color_viridis_c(
     name = bquote(P(X[i] > 0)),
-    #trans = scales::sqrt_trans(),
-    #breaks = c(0.05, 0.25, 0.6),
     option = "C",
   ) +
   coord_cartesian(expand = FALSE) +
@@ -203,15 +204,11 @@ p_sim_delta_mean <-
   geom_smooth(se = F) +
   scale_fill_viridis_d(
     name = "Immune (%)",
-    #trans = scales::sqrt_trans(),
-    #breaks = c(0.05, 0.25, 0.6),
     option = "C",
     labels = label_parse()
   ) +
   scale_color_viridis_d(
     name = "Immune (%)",
-    #trans = scales::sqrt_trans(),
-    #breaks = c(0.05, 0.25, 0.6),
     option = "C",
     labels = label_parse()
   ) +
