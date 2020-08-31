@@ -40,8 +40,9 @@ sim_X_eff_mean <-
   cbind(sim_params, "mean" = sapply(sim_results, get, x = "X_eff_mean"))
 
 # Eva, I think what you'd want to do here is:
-#   1. left join with empirical distribution of gathering sizes from BBC Pandemic
-#   2. calculate weighted mean by multiplying probability of gathering size by X_eff at that size
+#   1. load empirical distribution data of gathering sizes from BBC Pandemic  
+#   2. left join sim_X_eff_mean with empirical distribution 
+#   3. calculate weighted mean by multiplying probability of gathering size by X_eff at that size
 
 # I think this will give us an estimate of R_g or gathering's contribution to R_t
 # then we can just plot before and after intervention and use simulation to give us 
