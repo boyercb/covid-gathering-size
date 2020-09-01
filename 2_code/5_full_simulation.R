@@ -52,12 +52,14 @@ sim_X_eff_mean <-
 
 
 
-#Load empirical distribution data of gathering sizes from BBC Pandemic   
-o18 <- read_csv("~/Documents/GitHub/groupsize/1_data/contact_dist_BBCPandemic/contact_distributions_o18.csv")
+#Load data of gathering sizes from BBC Pandemic   
+o18 <- read_csv("1_data/contact_dist_BBCPandemic/contact_distributions_o18.csv")
 o18 <- select(o18, -c(1,2))
 o18$log_e_other <- log(o18$e_other) #Make log transformation to plot below
 o18$log_e_other[o18$log_e_other == -Inf] <- 0 #Replace -Inf values by 0
+o18$ e_other_plus1 <- o18$e_other + 1
 #head(o18) #count(o18)
+#
 
 ## On GitHub there was this _v1 version. It seems that the e_other column is the same in both files:
 # o18_v1 <- read.csv("/Users/carolinemerdinger/Desktop/Other_dist/contact_distributions_o18_v1.csv", header = TRUE)
@@ -66,21 +68,99 @@ o18$log_e_other[o18$log_e_other == -Inf] <- 0 #Replace -Inf values by 0
 # o18_v1$test <- o18_v1$e_other - o18_v1$e_other2
 # o18_v1$test; sum(o18_v1$test) # 0
 
-#Plots of distribution
-ggplot(data = o18, mapping = aes(x = e_other)) +
+## Plots of distribution
+# ggplot(data = o18, mapping = aes(x = e_other)) +
+#   geom_point(stat = "count") + 
+#   scale_y_log10() + scale_x_log10() #Misses the 0 point
+ggplot(data = o18, mapping = aes(x = e_other_plus1)) + 
   geom_point(stat = "count") + 
-  scale_y_log10() + scale_x_log10() #Misses the 0 point
-ggplot(data = o18, mapping = aes(x = log_e_other)) + #Plot ok !
-  geom_point(stat = "count") +
-  scale_y_log10()
+  scale_y_log10() + scale_x_log10()
+# ggplot(data = o18, mapping = aes(x = log_e_other)) +
+#   geom_point(stat = "count") +
+#   scale_y_log10()
 #
 
-#Drawing from distribution od e_other
-sample_n(o18, 5000)$e_other
+### Creating empirical distribution of gatherings under restrictions in gatherings size : 
+
+### OPTION 1 - Considering total number of gatherings : 
+## Drawing distributions of X gatherings (and limitation up to size of L is in place).
+#Set X (number gatherings we want) and L (max size allowed) : 
+X <- 5000
+L <- 10
+# We consider three different responses to restrictions :
+#
+# Option 1a) - Replace gatherings too large (>L) by largest allowed (L) [least conservative]
+my_sample <- sample_n(o18, 5*X)$e_other_plus1 #Allow replacement ? 
+my_sample[my_sample > L] <- L
+my_sample <- my_sample[1:X] # We want X gatherings 
+my_sample 
+#
+# Option 1b) - Replace gatherings to large (>L) by another draw 
+my_sample <- sample_n(o18, 5*X)$e_other_plus1 #Allow replacement ? 
+my_sample <- my_sample[my_sample <= L][1:X] # We wat X gatherings 
+my_sample
+#
+# Option 1c) - Gatherings >L do not happen (i.e. less gatherings happen!)  [most conservative]
+my_sample <- sample_n(o18, X)$e_other_plus1 #Allow replacement ? 
+my_sample <- my_sample[my_sample <= L]
+my_sample # length(my_sample) < X
+#
+
+
+### OPTION 2 - Considering total number of people attending : 
+##We want to assign Y people to gatherings (and limitation up to size of L is in place).
+#Set Y (number people we want) and L (max size allowed) : 
+Y <- 10000
+L <- 10
+# We consider three different responses to restrictions :
+#
+# Option 2a) - Replace gatherings too large (>L) by largest allowed (L) [least conservative]
+# CHRIS, Here I make sure that in total Y people attend the gatherings
+my_sample <- sample_n(o18, Y)$e_other_plus1 
+while (sum(my_sample[1:i]) != Y) {
+  my_sample <- sample_n(o18, Y)$e_other_plus1
+  my_sample[my_sample > L] <- L
+    i <- 1 #Subset my_sample to keep Y people only
+    while (sum(my_sample[1:i]) < Y) {
+      #print(sum(my_sample[1:i]))
+      i = i + 1
+    }
+  my_sample <- my_sample[1:i]
+  sum(my_sample[1:i])
+}
+#my_sample
+length(my_sample)
+sum(my_sample)
+#max(my_sample)
+#hist(my_sample)
+#
+# Option 2b) -  Replace gatherings to large (>L) by another draw 
+my_sample <- sample_n(o18, Y)$e_other_plus1 
+my_sample <- my_sample[my_sample <= L][1:X]
+while (sum(my_sample[1:i]) != Y) {
+  my_sample <- sample_n(o18, Y)$e_other_plus1
+  my_sample <- my_sample[my_sample <= L][1:X]
+  i <- 1 #Subset my_sample to keep Y people only
+  while (sum(my_sample[1:i]) < Y) {
+    #print(sum(my_sample[1:i]))
+    i = i + 1
+  }
+  my_sample <- my_sample[1:i]
+  sum(my_sample[1:i])
+}
+#my_sample
+length(my_sample)
+sum(my_sample)
+#max(my_sample)
+#hist(my_sample)
+#
+# Option 2c) - Gatherings >L do not happen (i.e. less people attend!)  [most conservative]
 
 
 
 
+
+#
 sim_X_eff_mean <-
   sim_X_eff_mean %>%
   filter(pr %in% c(0, 0.05, 0.10, 0.15, 0.20)) %>%
