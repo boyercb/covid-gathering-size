@@ -2,6 +2,8 @@ N_SEQ <- seq(2, 30)                    # size of gatherings
 PI_SEQ <- seq(0.005, 0.02, 0.005)      # population prevalence of infection
 PR_SEQ <- seq(0, 0.20, 0.01)           # population prevalence of immunity
 PHI_SEQ <- c(0.1, 1, 10, 100)          # range of dispersion parameter phi
+L_SEQ <- seq(10, 100, 10)              # range of limitations in gathering size 
+
 
 sim_params <-
   expand.grid(
@@ -47,6 +49,36 @@ sim_X_eff_mean <-
 # I think this will give us an estimate of R_g or gathering's contribution to R_t
 # then we can just plot before and after intervention and use simulation to give us 
 # uncertainty range in R_g
+
+
+
+#Load empirical distribution data of gathering sizes from BBC Pandemic   
+o18 <- read_csv("~/Documents/GitHub/groupsize/1_data/contact_dist_BBCPandemic/contact_distributions_o18.csv")
+o18 <- select(o18, -c(1,2))
+o18$log_e_other <- log(o18$e_other) #Make log transformation to plot below
+o18$log_e_other[o18$log_e_other == -Inf] <- 0 #Replace -Inf values by 0
+#head(o18) #count(o18)
+
+## On GitHub there was this _v1 version. It seems that the e_other column is the same in both files:
+# o18_v1 <- read.csv("/Users/carolinemerdinger/Desktop/Other_dist/contact_distributions_o18_v1.csv", header = TRUE)
+# #head(o18_v1) #count(o18_v1)
+# o18_v1$e_other2 <- o18$e_other
+# o18_v1$test <- o18_v1$e_other - o18_v1$e_other2
+# o18_v1$test; sum(o18_v1$test) # 0
+
+#Plots of distribution
+ggplot(data = o18, mapping = aes(x = e_other)) +
+  geom_point(stat = "count") + 
+  scale_y_log10() + scale_x_log10() #Misses the 0 point
+ggplot(data = o18, mapping = aes(x = log_e_other)) + #Plot ok !
+  geom_point(stat = "count") +
+  scale_y_log10()
+#
+
+#Drawing from distribution od e_other
+sample_n(o18, 5000)$e_other
+
+
 
 
 sim_X_eff_mean <-
