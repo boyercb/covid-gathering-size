@@ -94,17 +94,26 @@ my_sample <- sample_n(o18, 5*X)$e_other_plus1 #Allow replacement ?
 my_sample[my_sample > L] <- L
 my_sample <- my_sample[1:X] # We want X gatherings 
 my_sample 
+hist(my_sample)
 #
 # Option 1b) - Replace gatherings to large (>L) by another draw 
-my_sample <- sample_n(o18, 5*X)$e_other_plus1 #Allow replacement ? 
-my_sample <- my_sample[my_sample <= L][1:X] # We wat X gatherings 
+my_sample <- sample_n(o18, 5*X)$e_other_plus1
+my_sample <- my_sample[my_sample <= L][1:X] # We want X gatherings 
 my_sample
+hist(my_sample)
 #
-# Option 1c) - Gatherings >L do not happen (i.e. less gatherings happen!)  [most conservative]
-my_sample <- sample_n(o18, X)$e_other_plus1 #Allow replacement ? 
-my_sample <- my_sample[my_sample <= L]
-my_sample # length(my_sample) < X
+# Option 1c) - Replace gatherings too large (>L) by no gatherings=gatherings of size 1 [most conservative]
+my_sample <- sample_n(o18, 5*X)$e_other_plus1
+my_sample[my_sample > L] <- 1
+my_sample <- my_sample[1:X] # We want X gatherings 
+my_sample 
+hist(my_sample)
 #
+# # Option 1?) - Gatherings >L do not happen (i.e. less gatherings happen!)
+# my_sample <- sample_n(o18, X)$e_other_plus1
+# my_sample <- my_sample[my_sample <= L]
+# my_sample # length(my_sample) < X
+##
 
 
 ### OPTION 2 - Considering total number of people attending : 
@@ -149,13 +158,31 @@ while (sum(my_sample[1:i]) != Y) {
   sum(my_sample[1:i])
 }
 #my_sample
-length(my_sample)
 sum(my_sample)
-#max(my_sample)
+length(my_sample)
 #hist(my_sample)
 #
-# Option 2c) - Gatherings >L do not happen (i.e. less people attend!)  [most conservative]
-
+# Option 2c) -Replace gatherings too large (>L) by no gatherings=gatherings of size 1 [most conservative]
+my_sample <- sample_n(o18, Y)$e_other_plus1 
+my_sample[my_sample > L] <- 1
+while (sum(my_sample[1:i]) != Y) {
+  my_sample <- sample_n(o18, Y)$e_other_plus1
+  my_sample[my_sample > L] <- 1
+  i <- 1 #Subset my_sample to keep Y people only
+  while (sum(my_sample[1:i]) < Y) {
+    #print(sum(my_sample[1:i]))
+    i = i + 1
+  }
+  my_sample <- my_sample[1:i]
+  sum(my_sample[1:i])
+}
+#my_sample
+sum(my_sample)
+length(my_sample)
+#hist(my_sample)
+# 
+# Option 2?) - Gatherings >L do not happen (i.e. less people attend!)
+# 
 
 
 
