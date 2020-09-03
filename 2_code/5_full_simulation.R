@@ -57,7 +57,7 @@ o18 <- read_csv("1_data/contact_dist_BBCPandemic/contact_distributions_o18.csv")
 o18 <- select(o18, -c(1,2))
 o18$log_e_other <- log(o18$e_other) #Make log transformation to plot below
 o18$log_e_other[o18$log_e_other == -Inf] <- 0 #Replace -Inf values by 0
-o18$ e_other_plus1 <- o18$e_other + 1
+o18$e_other_plus1 <- o18$e_other + 1
 #head(o18) #count(o18)
 #
 
@@ -83,36 +83,34 @@ ggplot(data = o18, mapping = aes(x = e_other_plus1)) +
 ### Creating empirical distribution of gatherings under restrictions in gatherings size : 
 
 ### OPTION 1 - Considering total number of gatherings : 
-## Drawing distributions of X gatherings (and limitation up to size of L is in place).
-#Set X (number gatherings we want) and L (max size allowed) : 
-X <- 5000
+## Drawing distributions of W gatherings (with limitation up to sizeL).
+#Set W (number gatherings we want) and L (max size allowed) : 
+W <- 5000
 L <- 10
 # We consider three different responses to restrictions :
+# Option 1) - No restriction
+my_sample <- sample_n(o18, W)$e_other_plus1
+#my_sample 
+hist(my_sample)
 #
 # Option 1a) - Replace gatherings too large (>L) by largest allowed (L) [least conservative]
-my_sample <- sample_n(o18, 5*X)$e_other_plus1 #Allow replacement ? 
+my_sample <- sample_n(o18, W)$e_other_plus1
 my_sample[my_sample > L] <- L
-my_sample <- my_sample[1:X] # We want X gatherings 
-my_sample 
+#my_sample 
 hist(my_sample)
 #
 # Option 1b) - Replace gatherings to large (>L) by another draw 
-my_sample <- sample_n(o18, 5*X)$e_other_plus1
-my_sample <- my_sample[my_sample <= L][1:X] # We want X gatherings 
-my_sample
+my_sample <- sample_n(o18, as.numeric(count(o18)))$e_other_plus1
+my_sample <- my_sample[my_sample <= L][1:W]
+#my_sample 
 hist(my_sample)
 #
 # Option 1c) - Replace gatherings too large (>L) by no gatherings=gatherings of size 1 [most conservative]
-my_sample <- sample_n(o18, 5*X)$e_other_plus1
+my_sample <- sample_n(o18, W)$e_other_plus1
 my_sample[my_sample > L] <- 1
-my_sample <- my_sample[1:X] # We want X gatherings 
-my_sample 
+#my_sample 
 hist(my_sample)
 #
-# # Option 1?) - Gatherings >L do not happen (i.e. less gatherings happen!)
-# my_sample <- sample_n(o18, X)$e_other_plus1
-# my_sample <- my_sample[my_sample <= L]
-# my_sample # length(my_sample) < X
 ##
 
 
@@ -123,9 +121,12 @@ Y <- 10000
 L <- 10
 # We consider three different responses to restrictions :
 #
+# Option 2) - No restriction
+###
+#
 # Option 2a) - Replace gatherings too large (>L) by largest allowed (L) [least conservative]
-# CHRIS, Here I make sure that in total Y people attend the gatherings
 my_sample <- sample_n(o18, Y)$e_other_plus1 
+i <- 1
 while (sum(my_sample[1:i]) != Y) {
   my_sample <- sample_n(o18, Y)$e_other_plus1
   my_sample[my_sample > L] <- L
@@ -138,17 +139,17 @@ while (sum(my_sample[1:i]) != Y) {
   sum(my_sample[1:i])
 }
 #my_sample
-length(my_sample)
-sum(my_sample)
+#length(my_sample)
+#sum(my_sample)
 #max(my_sample)
-#hist(my_sample)
+hist(my_sample)
 #
 # Option 2b) -  Replace gatherings to large (>L) by another draw 
 my_sample <- sample_n(o18, Y)$e_other_plus1 
-my_sample <- my_sample[my_sample <= L][1:X]
+my_sample <- my_sample[my_sample <= L][1:W]
 while (sum(my_sample[1:i]) != Y) {
   my_sample <- sample_n(o18, Y)$e_other_plus1
-  my_sample <- my_sample[my_sample <= L][1:X]
+  my_sample <- my_sample[my_sample <= L][1:W]
   i <- 1 #Subset my_sample to keep Y people only
   while (sum(my_sample[1:i]) < Y) {
     #print(sum(my_sample[1:i]))
@@ -160,7 +161,7 @@ while (sum(my_sample[1:i]) != Y) {
 #my_sample
 sum(my_sample)
 length(my_sample)
-#hist(my_sample)
+hist(my_sample)
 #
 # Option 2c) -Replace gatherings too large (>L) by no gatherings=gatherings of size 1 [most conservative]
 my_sample <- sample_n(o18, Y)$e_other_plus1 
@@ -179,9 +180,8 @@ while (sum(my_sample[1:i]) != Y) {
 #my_sample
 sum(my_sample)
 length(my_sample)
-#hist(my_sample)
+hist(my_sample)
 # 
-# Option 2?) - Gatherings >L do not happen (i.e. less people attend!)
 # 
 
 
