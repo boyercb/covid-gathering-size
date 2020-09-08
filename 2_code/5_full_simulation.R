@@ -50,8 +50,6 @@ sim_X_eff_mean <-
 # then we can just plot before and after intervention and use simulation to give us 
 # uncertainty range in R_g
 
-
-
 #Load data of gathering sizes from BBC Pandemic   
 o18 <- read_csv("1_data/contact_dist_BBCPandemic/contact_distributions_o18.csv")
 o18 <- select(o18, -c(1,2))
