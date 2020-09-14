@@ -51,6 +51,25 @@ sim_X_eff_mean <-
 # uncertainty range in R_g
 
 
+# load and modify the BBC pandemic data as we need to for the draw_gatherings() function below
+bbc <- read_csv("1_data/contact_dist_BBCPandemic/contact_distributions_o18.csv")
+bbc <- select(bbc, e_other)
+# gathering sizes are contacts + 1 (index person)
+bbc$M <- bbc$e_other + 1
+# plotting it
+bbc_data <- ggplot(data = bbc, mapping = aes(x = M)) + 
+  geom_point(stat = "count") + 
+  scale_y_log10() + scale_x_log10()
+pdf("3_results/bbc_data.pdf", width = 5, height = 6)
+print(bbc_data)
+dev.off()  
+## On GitHub there was this _v1 version. It seems that the e_other column is the same in both files:
+# o18_v1 <- read.csv("/Users/carolinemerdinger/Desktop/Other_dist/contact_distributions_o18_v1.csv", header = TRUE)
+# #head(o18_v1) #count(o18_v1)
+# o18_v1$e_other2 <- o18$e_other
+# o18_v1$test <- o18_v1$e_other - o18_v1$e_other2
+# o18_v1$test; sum(o18_v1$test) # 0
+
 #
 sim_X_eff_mean <-
   sim_X_eff_mean %>%

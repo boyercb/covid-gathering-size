@@ -263,18 +263,7 @@ betabinom_pmf <- function(x, size, p, phi) rmutil::dbetabinom(x, size, p, phi)
 
 
 
-# load and modify the BBC pandemic data as we need to for the draw_gatherings() function below
-bbc <- read_csv("1_data/contact_dist_BBCPandemic/contact_distributions_o18.csv")
-bbc <- select(bbc, e_other)
-# gathering sizes are contacts + 1 (index person)
-bbc$M <- bbc$e_other + 1
-# plotting it
-bbc_data <- ggplot(data = bbc, mapping = aes(x = M)) + 
-  geom_point(stat = "count") + 
-  scale_y_log10() + scale_x_log10()
-pdf("3_results/bbc_data.pdf", width = 5, height = 6)
-print(bbc_data)
-dev.off()  
+
 
 # draw_gatherings() function generates M, a vector of gatherings drawn from the
 # BBC pandemic distribution so that in total N people attend,
@@ -283,16 +272,15 @@ dev.off()
 
 draw_gatherings <- function(N = 10000, #10000 as default, can change
                             c = 10, # cut-off as default, can change
-                            option) { # define options for restriction (1, 2, or 3)
+                            dist = bbc$M, #use the bbc data distribution
+                            option = "0") { # define options for restriction (1, 2, or 3)
 # initialize loop variables
 M <- vector()
 i <- 1
-# create subset of bbc distribution <= c (for option 3)
-smallM <- sample(bbc$M[bbc$M <= c])
 # loop until sum of gatherings is equal to pop size
 while(sum(M) != N) {
   # draw gathering of size m from BBC pandemic distribution
-  M[i] <- sample(bbc$M, 1) 
+  M[i] <- sample(dist, 1) 
   if (M[i] > c) {
     M[i] <- switch(
       option,
@@ -303,9 +291,7 @@ while(sum(M) != N) {
       # option 2: set to 1 (least conservative)
       "2" = 1,
       # option 3: redraw until less than c (realistic?) 
-      #"3" = while (M[i] > c) # Chris I'm not sure what you were trying to do here (and it didn't seem to work?)
-      #  sample(bbc$M, 1)
-      "3" = sample(smallM, 1) #So I did that instead
+      "3" = sample(dist[dist <=c], 1)
     )
   }
   # if sum(m) is less than pop size, then advance to next gathering
@@ -316,23 +302,56 @@ while(sum(M) != N) {
 } 
 return(M)
 } 
+#tests
+#draw_gatherings(option = "0")
+#draw_gatherings()
 
 # apply the draw_SIR_attendees() function to each of the gatherings from draw_gatherings()
 # get distribution of S, I and R in each gathering 
+N <- 10000
+pi <- 0.05
+pr <- 0.05 
 
-gath <- as.matrix(draw_gatherings(option = "0" ))
+# draw gatherings
+gath <- draw_gatherings(option = "0")
 head(gath)
-test1 <- lapply(gath,draw_SIR_attendees,ps= 0.95, pi = 0.05, sims = 1)
-head(test1)
-test2 <- matrix(unlist(test1), ncol = 3, byrow = TRUE)
-head(test2)
-test3 <- data.frame(gath, test2)
-colnames(test3) <- c("N", "S", "I", "R")
-head(test3)
-#sum(test3$N) # check yes
 
-#draw_SIR_gatherings <- function() #Need to make a function out of this
+# define vector of population states based on pi and pr
+states <- c(
+  rep("S", N - floor(pi * N) - floor(pr * N)),
+  rep("I", floor(pi * N)),
+  rep("R", floor(pr * N))
+)
 
-#
+# for each gathering sample M from vector of population states to attend
+# gathering and tabulate numbers of S, I, and R
+# for each gathering sample M from vector of population states to attend
+# gathering and tabulate numbers of S, I, and R
+gath_states <-
+  lapply(gath, function (x)
+    as.data.frame(t(as.matrix(table(
+      sample(states, x)
+    )))))
+
+gath_states <- bind_rows(gath_states)
+
+## Other suggestion, but error ?? $$$$$
+#gath_states <- lapply(gath, function (x) table(sample(states, x)))
+#gath_states <- bind_rows(gath_states)
+#?bind_rows
+
+#reorder order to be always the same
+#colnames(gath_states)
+col_order <- c("S", "I", "R")
+gath_states <- gath_states[, col_order]
+head(gath_states)
+
+#replace NAs by zeros 
+gath_states <- rapply( gath_states, f=function(x) ifelse(is.na(x),0,x), how="replace" )
+
+#test
+head(gath_states)
+tail(gath_states)
+
 
 
