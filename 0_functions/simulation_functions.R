@@ -98,33 +98,41 @@ draw_gatherings <- function(N = 10000, #10000 as default, can change
 
 # assign S, I, R to gatherings
 draw_SIR_attendees <- function(N, M, pi, pr) {
+  
   # define vector of population states based on pi and pr
   states <- c(
     rep("S", N - floor(pi * N) - floor(pr * N)),
     rep("I", floor(pi * N)),
     rep("R", floor(pr * N))
   )
-  
+
   # for each gathering sample M from vector of population states to attend
   # gathering and tabulate numbers of S, I, and R
-  gath_states <- lapply(M, function (x) table(sample(states, x)))
+  gath_SIR <- lapply(M, function (x) table(sample(states, x)))
   
-  gath_states <- bind_rows(gath_states)  
+  gath_SIR <- bind_rows(gath_SIR)  
   
-  #reorder order to be always the same
-  col_order <- c("S", "I", "R")
-  gath_states <- gath_states[, col_order]
+  cols <- c("S", "I", "R")
   
-  #replace NAs by zeros 
-  gath_states <-
+  # if no S, I, or R are sampled in any a gatherings add a zero column
+  if (ncol(gath_SIR) != 3) {
+    cols_to_add <- cols[!cols %in% names(gath_SIR)]
+    gath_SIR[, cols_to_add] <- 0
+  }
+  
+  # reorder order to be always the same
+  gath_SIR <- gath_SIR[, cols]
+  
+  # replace NAs by zeros
+  gath_SIR <-
     rapply(
-      gath_states,
+      gath_SIR,
       f = function(x)
         ifelse(is.na(x), 0, x),
       how = "replace"
     )
   
-  return(as.matrix(gath_states))
+  return(as.matrix(gath_SIR))
   
 }
 
