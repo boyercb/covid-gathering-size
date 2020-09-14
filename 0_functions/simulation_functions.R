@@ -175,6 +175,8 @@ betabinom_cdf <- function(x, size, p, phi) rmutil::pbetabinom(x, size, p, phi)
 binom_pmf <- function(x, size, p) dbinom(x, size, p)
 betabinom_pmf <- function(x, size, p, phi) rmutil::dbetabinom(x, size, p, phi)
 
+# keeping older code with simple case to be able to easily manually check that
+# the function works fine
 if (FALSE) {
   # apply the draw_SIR_attendees() function to each of the gatherings from draw_gatherings()
   # get distribution of S, I and R in each gathering 
@@ -197,19 +199,18 @@ if (FALSE) {
   # gathering and tabulate numbers of S, I, and R
   # for each gathering sample M from vector of population states to attend
   # gathering and tabulate numbers of S, I, and R
-  gath_states <-
-    lapply(gath, function (x)
-      as.data.frame(t(as.matrix(table(
-        sample(states, x)
-      )))))
-  
-  gath_states <- bind_rows(gath_states)
-  
-  ## Other suggestion, but error ?? $$$$$
-  # gath_states <- lapply(gath, function (x) table(sample(states, x)))
+  # gath_states <-
+  #   lapply(gath, function (x)
+  #     as.data.frame(t(as.matrix(table(
+  #       sample(states, x)
+  #     )))))
+  # 
   # gath_states <- bind_rows(gath_states)
-  #?bind_rows
-  
+  # 
+  ## Shorter way of coding this
+  gath_states <- lapply(gath, function (x) table(sample(states, x)))
+  gath_states <- bind_rows(gath_states)
+
   #reorder order to be always the same
   #colnames(gath_states)
   col_order <- c("S", "I", "R")
