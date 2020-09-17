@@ -8,7 +8,6 @@
 simulate_gatherings <- function(N,
                                 pi,
                                 pr,
-                                sims = 1,
                                 option = "0",
                                 c = 10,
                                 dist,
@@ -227,7 +226,6 @@ if (FALSE) {
   
   #replace NAs by zeros 
   gath_states <- rapply( gath_states, f=function(x) ifelse(is.na(x),0,x), how="replace" )
-  
   # gath_states[is.na(gath_states)] <- 0
   
   #test

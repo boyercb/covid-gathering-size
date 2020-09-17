@@ -17,6 +17,23 @@ dev.off()
 # o18_v1$test <- o18_v1$e_other - o18_v1$e_other2
 # o18_v1$test; sum(o18_v1$test) # 0
 
+popsize <- 52078525 # From www.ons.gov.uk mid-2017 over 18yo population in the UK.
+bbc$wt <- popsize / bbc$M  # weights
+total_wt <- sum(bbc$wt)    # sum of all weights
+# estimate density for each value of gathering size
+bbc_w <- bbc %>%
+  group_by(M) %>%
+  summarise(prob = n() * sum(wt) / total_wt)
+#plot(bbc_w)
+# plotting it
+bbc_data_w <- ggplot(data = bbc_w, mapping = aes(x = M, y = prob)) + 
+  geom_point() +
+  scale_y_log10() + scale_x_log10()
+pdf("3_results/bbc_data_weighted.pdf", width = 5, height = 6)
+print(bbc_data_w)
+dev.off() 
+
+
 
 # Run simulations
 N_SEQ <- seq(1000, 10000, 2000)                    # size of population
@@ -29,7 +46,11 @@ PHI_SEQ <- c(0.1, 1, 10, 100)          # range of dispersion parameter phi
 #L_SEQ <- seq(10, 100, 10)              # range of limitations in gathering size 
 L_SEQ <- seq(10, 50, 20)              # range of limitations in gathering size 
 
-# I made 180 combinations to start with 
+# N_SEQ <-   seq(1000, 10000, 5000) 
+# PI_SEQ <- seq(0.005, 0.010, 0.005)  
+# PR_SEQ <- seq(0, 0.10, 0.1)
+# PHI_SEQ <- c(0.1, 1)
+# L_SEQ <- seq(10, 30, 20) 
 
 sim_params <-
   expand.grid(
@@ -41,7 +62,7 @@ sim_params <-
 
 sim_params$ps <- 1 - sim_params$pi - sim_params$pr
 
-pb <- txtProgressBar(max = nrow(sim_params), initial = NA, style = 3)
+pb <- txtProgressBar(max = nrow(sim_params), initial = 0, style = 3)
 
 sim_results <-
   pmap(
@@ -49,17 +70,33 @@ sim_results <-
     function(N, pi, pr, phi) {
       i <- getTxtProgressBar(pb)
       setTxtProgressBar(pb, ifelse(is.na(i), 1, i + 1))
-      sim <- simulate_gatherings(N, pi, pr, dist = bbc$M)
+      sim <- replicate(5, simulate_gatherings(N, pi, pr, dist = bbc$M), simplify = F)
       list(
-        "X_eff_table" = table(sim$X_eff),
-        "X_eff_mean" = mean(sim$X_eff),
-        "delta_table" = table(sim$delta),
-        "delta_mean" = mean(sim$delta)
+        "X_eff" = lapply(sim, get, x = "X_eff"),
+        "delta" = lapply(sim, get, x = "delta")
       )
+      #sim <- simulate_gatherings(N, pi, pr, dist = bbc$M)
+      # list(
+      #   "X_eff_table" = table(sim$X_eff),
+      #   "X_eff_mean" = mean(sim$X_eff),
+      #   "delta_table" = table(sim$delta),
+      #   "delta_mean" = mean(sim$delta)
+      # )
     }
   )
 
 close(pb)
+#
+sim_results_X_eff <- lapply(sim_results, `[`, c('X_eff'))
+sim_results_delta <- lapply(sim_results, `[`, c('delta'))
+#
+
+head(sim_results)
+head(sim_params)
+sim_results
+sim_results_X_eff
+sim_results_delta
+
 
 
 # plot: expected secondary cases per index case (Rg) ----------------------
