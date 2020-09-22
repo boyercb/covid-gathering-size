@@ -17,22 +17,41 @@ dev.off()
 # o18_v1$test <- o18_v1$e_other - o18_v1$e_other2
 # o18_v1$test; sum(o18_v1$test) # 0
 
+# Testing the IP weighting
 popsize <- 52078525 # From www.ons.gov.uk mid-2017 over 18yo population in the UK.
+popsize <- 33 #works with any number !!
 bbc$wt <- popsize / bbc$M  # weights
 total_wt <- sum(bbc$wt)    # sum of all weights
 # estimate density for each value of gathering size
-bbc_w <- bbc %>%
+dist <- bbc %>%
   group_by(M) %>%
-  summarise(prob = n() * sum(wt) / total_wt)
-#plot(bbc_w)
+  summarise(prob = sum(wt) / total_wt)
+#plot(dist)
 # plotting it
-bbc_data_w <- ggplot(data = bbc_w, mapping = aes(x = M, y = prob)) + 
+bbc_data_w <- ggplot(data = dist, mapping = aes(x = M, y = prob)) + 
   geom_point() +
   scale_y_log10() + scale_x_log10()
-pdf("3_results/bbc_data_weighted.pdf", width = 5, height = 6)
+#pdf("3_results/bbc_data_weighted.pdf", width = 5, height = 6)
 print(bbc_data_w)
-dev.off() 
+#dev.off() 
+#sum(dist$prob) # = 1
+sample(dist$M, 10000, replace = T, prob = dist$prob)
+table(sample(dist$M, 10000, replace = T, prob = dist$prob))
+#
 
+# Testing the simpler approach of dividing gathering proba by gathering size
+# It seems to me that the output is the same as what we get with the IPW
+test <- bbc %>% group_by(M) %>% count(M)
+test$M_wt <- test$n / test$M
+test$prob <- test$M_wt / sum(test$M_wt)
+sum(test$prob)
+ggplot(data = test, mapping = aes(x = M, y = prob)) + 
+  geom_point() +
+  scale_y_log10() + scale_x_log10()
+#
+sample(test$M, 10000, replace = T, prob = test$prob)
+table(sample(test$M, 10000, replace = T, prob = test$prob))
+#
 
 
 # Run simulations
@@ -71,6 +90,7 @@ sim_results <-
       i <- getTxtProgressBar(pb)
       setTxtProgressBar(pb, ifelse(is.na(i), 1, i + 1))
       sim <- replicate(5, simulate_gatherings(N, pi, pr, dist = bbc$M), simplify = F)
+      #sim <- replicate(5, simulate_gatherings(N, pi, pr, dist = CHANGE DIST ! ), simplify = F)
       list(
         "X_eff" = lapply(sim, get, x = "X_eff"),
         "delta" = lapply(sim, get, x = "delta")
@@ -87,16 +107,28 @@ sim_results <-
 
 close(pb)
 #
+# Generate list of parameters combinations used:
+
+#
+# Extract a usable format of the sim_resutls
+# Here I tried so many things, and haven't figured it out yet...
+# There at least extract X_eff and delta separately.
 sim_results_X_eff <- lapply(sim_results, `[`, c('X_eff'))
 sim_results_delta <- lapply(sim_results, `[`, c('delta'))
 #
-
 head(sim_results)
 head(sim_params)
 sim_results
 sim_results_X_eff
 sim_results_delta
 
+# Some of the functions I tried...
+test <- lapply(sim_results, get, x = "X_eff")
+test <- do.call(rbind, test)
+unlist(test)
+lapply(test, list.extract, 5) # from rlist package
+list.extract
+#
 
 
 # plot: expected secondary cases per index case (Rg) ----------------------
