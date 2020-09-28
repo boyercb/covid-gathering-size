@@ -11,10 +11,11 @@ simulate_gatherings <- function(N,
                                 option = "0",
                                 c = 10,
                                 dist,
+                                wt,
                                 prior = function(x) rbeta(x, 0.08, 0.92)) {
   
   # draw gatherings from empirical distribution
-  M <- draw_gatherings(N, c, dist, option)
+  M <- draw_gatherings(N, c, dist, wt, option)
   
   # assign S, I, R to gatherings
   gath_SIR <- draw_SIR_attendees(N, M, pi, pr)
@@ -64,7 +65,8 @@ simulate_gatherings <- function(N,
 # 3 for replacement by another draw smaller to c
 draw_gatherings <- function(N = 10000, #10000 as default, can change
                             c = 10, # cut-off as default, can change
-                            dist = bbc$M, #use the bbc data distribution
+                            dist, #use the bbc data distribution
+                            wt,
                             option = "0") { # define options for restriction (1, 2, or 3)
   # initialize loop variables
   M <- vector()
@@ -72,7 +74,7 @@ draw_gatherings <- function(N = 10000, #10000 as default, can change
   # loop until sum of gatherings is equal to pop size
   while(sum(M) != N) {
     # draw gathering of size m from BBC pandemic distribution
-    M[i] <- sample(dist, 1) 
+    M[i] <- sample(dist, 1, replace = TRUE, prob = wt) 
     if (M[i] > c) {
       M[i] <- switch(
         option,
@@ -83,7 +85,7 @@ draw_gatherings <- function(N = 10000, #10000 as default, can change
         # option 2: set to 1 (least conservative)
         "2" = 1,
         # option 3: redraw until less than c (realistic?) 
-        "3" = sample(dist[dist <=c], 1)
+        "3" = sample(dist[dist <=c], 1, replace = TRUE, prob = wt) 
       )
     }
     # if sum(m) is less than pop size, then advance to next gathering
