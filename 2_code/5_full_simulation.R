@@ -1,15 +1,19 @@
 # Load and modify the BBC pandemic data as we need to for the draw_gatherings() function below
 bbc <- read_csv("1_data/contact_dist_BBCPandemic/contact_distributions_o18.csv")
 bbc <- select(bbc, e_other)
+
 # gathering sizes are contacts + 1 (index person)
 bbc$M <- bbc$e_other + 1
+
 # plotting it
-bbc_data <- ggplot(data = bbc, mapping = aes(x = M)) + 
-  geom_point(stat = "count") + 
+bbc_data <- ggplot(data = bbc, mapping = aes(x = M)) +
+  geom_point(stat = "count") +
   scale_y_log10() + scale_x_log10()
+
 pdf("3_results/bbc_data.pdf", width = 5, height = 6)
 print(bbc_data)
 dev.off()  
+
 ## On GitHub there was this _v1 version. It seems that the e_other column is the same in both files:
 # o18_v1 <- read.csv("/Users/carolinemerdinger/Desktop/Other_dist/contact_distributions_o18_v1.csv", header = TRUE)
 # #head(o18_v1) #count(o18_v1)
@@ -26,7 +30,7 @@ total_wt <- sum(bbc$wt)    # sum of all weights
 dist <- bbc %>%
   group_by(M) %>%
   summarise(prob = sum(wt) / total_wt)
-#plot(dist)
+
 # plotting it
 bbc_data_w <- ggplot(data = dist, mapping = aes(x = M, y = prob)) + 
   geom_point() +
@@ -53,23 +57,18 @@ sample(test$M, 10000, replace = T, prob = test$prob)
 table(sample(test$M, 10000, replace = T, prob = test$prob))
 #
 
-
 # Run simulations
-N_SEQ <- seq(1000, 10000, 2000)                    # size of population
+N_SEQ <- c(1000, 5000, 10000)           # size of population
 #PI_SEQ <- seq(0.005, 0.02, 0.005)      # population prevalence of infection
 PI_SEQ <- seq(0.005, 0.015, 0.005)      # population prevalence of infection
 #PR_SEQ <- seq(0, 0.20, 0.01)           # population prevalence of immunity
-PR_SEQ <- seq(0, 0.20, 0.1)           # population prevalence of immunity
+PR_SEQ <- seq(0, 0.20, 0.05)            # population prevalence of immunity
 #PHI_SEQ <- c(0.1, 1, 10, 100)          # range of dispersion parameter phi
-PHI_SEQ <- c(0.1, 1, 10, 100)          # range of dispersion parameter phi
+PHI_SEQ <- c(0.1, 1, 10, 100)           # range of dispersion parameter phi
 #L_SEQ <- seq(10, 100, 10)              # range of limitations in gathering size 
-L_SEQ <- seq(10, 50, 20)              # range of limitations in gathering size 
+L_SEQ <- seq(10, 50, 10)                # range of limitations in gathering size 
+SIMS <- 1000
 
-# N_SEQ <-   seq(1000, 10000, 5000) 
-# PI_SEQ <- seq(0.005, 0.010, 0.005)  
-# PR_SEQ <- seq(0, 0.10, 0.1)
-# PHI_SEQ <- c(0.1, 1)
-# L_SEQ <- seq(10, 30, 20) 
 
 sim_params <-
   expand.grid(
@@ -79,56 +78,57 @@ sim_params <-
     phi = PHI_SEQ
   )
 
-sim_params$ps <- 1 - sim_params$pi - sim_params$pr
-
 pb <- txtProgressBar(max = nrow(sim_params), initial = 0, style = 3)
 
 sim_results <-
-  pmap(
-    as.list(sim_params[names(sim_params) != "ps"]),
-    function(N, pi, pr, phi) {
-      i <- getTxtProgressBar(pb)
-      setTxtProgressBar(pb, ifelse(is.na(i), 1, i + 1))
-      sim <- replicate(5, simulate_gatherings(N, pi, pr, dist = bbc$M), simplify = F)
-      #sim <- replicate(5, simulate_gatherings(N, pi, pr, dist = CHANGE DIST ! ), simplify = F)
-      list(
-        "X_eff" = lapply(sim, get, x = "X_eff"),
-        "delta" = lapply(sim, get, x = "delta")
-      )
-      #sim <- simulate_gatherings(N, pi, pr, dist = bbc$M)
-      # list(
-      #   "X_eff_table" = table(sim$X_eff),
-      #   "X_eff_mean" = mean(sim$X_eff),
-      #   "delta_table" = table(sim$delta),
-      #   "delta_mean" = mean(sim$delta)
-      # )
-    }
-  )
+  furrr::future_pmap(as.list(sim_params),
+       function(N, pi, pr, phi) {
+         i <- getTxtProgressBar(pb)
+         setTxtProgressBar(pb, ifelse(is.na(i), 1, i + 1))
+         sims <- map(1:SIMS, function (x) {
+           sim <- simulate_gatherings(N, pi, pr, dist = bbc_w$M, wt = bbc_w$prob)
+           
+           list(
+             "X_eff_table" = tibble(
+               SIM = x, 
+               N = N, 
+               pi = pi, 
+               pr = pr, 
+               phi = phi, 
+               count(tibble(X_eff = sim$X_eff), X_eff)
+              ),
+             "X_eff_mean" = tibble(
+               SIM = x, 
+               N = N, 
+               pi = pi, 
+               pr = pr, 
+               phi = phi, 
+               X_eff = mean(sim$X_eff)
+              ),
+             "delta_table" = tibble(
+               SIM = x, 
+               N = N, 
+               pi = pi, 
+               pr = pr, 
+               phi = phi, 
+               count(tibble(delta = sim$delta), delta)
+              ),
+             "delta_mean" = tibble(
+               SIM = x, 
+               N = N, 
+               pi = pi, 
+               pr = pr, 
+               phi = phi, 
+               delta = mean(sim$delta)
+              )
+           )
+         })
+         map(transpose(sims), bind_rows)
+       })
 
 close(pb)
-#
-# Generate list of parameters combinations used:
 
-#
-# Extract a usable format of the sim_resutls
-# Here I tried so many things, and haven't figured it out yet...
-# There at least extract X_eff and delta separately.
-sim_results_X_eff <- lapply(sim_results, `[`, c('X_eff'))
-sim_results_delta <- lapply(sim_results, `[`, c('delta'))
-#
-head(sim_results)
-head(sim_params)
-sim_results
-sim_results_X_eff
-sim_results_delta
-
-# Some of the functions I tried...
-test <- lapply(sim_results, get, x = "X_eff")
-test <- do.call(rbind, test)
-unlist(test)
-lapply(test, list.extract, 5) # from rlist package
-list.extract
-#
+sim_results <- map(transpose(sim_results), bind_rows)
 
 
 # plot: expected secondary cases per index case (Rg) ----------------------
