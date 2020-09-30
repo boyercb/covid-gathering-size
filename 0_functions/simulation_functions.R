@@ -12,7 +12,8 @@ simulate_gatherings <- function(N,
                                 c = 10,
                                 dist,
                                 wt,
-                                prior = function(x) rbeta(x, 0.08, 0.92)) {
+                                prior = function(x) rbeta(x, 0.08, 0.92), 
+                                return_SIR = FALSE) {
   
   # draw gatherings from empirical distribution
   M <- draw_gatherings(N, c, dist, wt, option)
@@ -46,12 +47,19 @@ simulate_gatherings <- function(N,
   gath_SIR <- cbind(gath_SIR, delta)
   
   # return results
-  res <- list(
-    "SIR" = gath_SIR,
-    "X" = unlist(X),
-    "X_eff" = X_eff, 
-    "delta" = delta
-  )
+  if (return_SIR) {
+    res <- list(
+      "SIR" = gath_SIR,
+      "X" = unlist(X),
+      "X_eff" = X_eff, 
+      "delta" = delta
+    )
+  } else {
+    res <- list(
+      "X_eff" = X_eff, 
+      "delta" = delta
+    )
+  }
   
   return(res)
 }
@@ -125,13 +133,7 @@ draw_SIR_attendees <- function(N, M, pi, pr) {
   gath_SIR <- gath_SIR[, cols]
   
   # replace NAs by zeros
-  gath_SIR <-
-    rapply(
-      gath_SIR,
-      f = function(x)
-        ifelse(is.na(x), 0, x),
-      how = "replace"
-    )
+  gath_SIR[is.na(gath_SIR)] <- 0
   
   return(as.matrix(gath_SIR))
   
