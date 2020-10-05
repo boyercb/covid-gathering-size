@@ -6,6 +6,7 @@ library(rmutil)
 # global parameters -------------------------------------------------------
 
 SIMS <- 100000
+rerun_simulation <- TRUE
 
 # load helper functions ---------------------------------------------------
 
@@ -24,6 +25,8 @@ source("2_code/3_sampling.R")
 
 source("2_code/4_heterogeneous_mixing.R")
 
-source("2_code/5_full_simulation.R")
+source("2_code/5_load_bbc_data.R")
+
+source("2_code/6_full_simulation.R")
 
 
