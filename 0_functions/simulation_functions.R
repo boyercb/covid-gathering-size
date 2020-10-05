@@ -110,30 +110,23 @@ draw_SIR_attendees <- function(N, M, pi, pr) {
   
   # define vector of population states based on pi and pr
   states <- c(
-    rep("S", N - floor(pi * N) - floor(pr * N)),
-    rep("I", floor(pi * N)),
-    rep("R", floor(pr * N))
+    rep(1, N - floor(pi * N) - floor(pr * N)),
+    rep(2, floor(pi * N)),
+    rep(3, floor(pr * N))
   )
 
   # for each gathering sample M from vector of population states to attend
   # gathering and tabulate numbers of S, I, and R
-  gath_SIR <- lapply(M, function (x) table(sample(states, x)))
+  gath_SIR <- lapply(M, function (x) tabulate(sample(states, x), 3))
   
-  gath_SIR <- bind_rows(gath_SIR)  
-  
-  cols <- c("S", "I", "R")
-  
-  # if no S, I, or R are sampled in any a gatherings add a zero column
-  if (ncol(gath_SIR) != 3) {
-    cols_to_add <- cols[!cols %in% names(gath_SIR)]
-    gath_SIR[, cols_to_add] <- 0
-  }
-  
-  # reorder order to be always the same
-  gath_SIR <- gath_SIR[, cols]
-  
-  # replace NAs by zeros
-  gath_SIR[is.na(gath_SIR)] <- 0
+  # build matrix from results
+  gath_SIR <-
+    matrix(unlist(gath_SIR),
+           byrow = TRUE,
+           nrow = length(gath_SIR))
+
+  # add column names
+  colnames(gath_SIR) <- c("S", "I", "R")
   
   return(as.matrix(gath_SIR))
   
