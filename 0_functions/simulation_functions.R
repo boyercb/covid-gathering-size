@@ -93,7 +93,7 @@ draw_gatherings <- function(N = 10000, #10000 as default, can change
         # option 2: set to 1 (least conservative)
         "2" = 1,
         # option 3: redraw until less than c (realistic?) 
-        "3" = sample(dist[dist <=c], 1, replace = TRUE, prob = wt) 
+        "3" = sample(dist[dist <=c], 1, replace = TRUE, prob = wt[dist <=c]) 
       )
     }
     # if sum(m) is less than pop size, then advance to next gathering
