@@ -49,6 +49,7 @@ simulate_gatherings <- function(N,
   # return results
   if (return_SIR) {
     res <- list(
+      "M" = M,
       "SIR" = gath_SIR,
       "X" = unlist(X),
       "X_eff" = X_eff, 
