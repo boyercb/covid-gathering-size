@@ -2,7 +2,7 @@ offspring_model <- function(N = 100000L,      # number of iterations
                             k_work,           # contact distribution for work
                             k_gather,         # contact distribution for gatherings
                             k_home,           # contact distribution for home
-                            mu_work = 0.01,   # SAR at work
+                            mu_work = 0.02,   # SAR at work
                             mu_gather = 0.08, # SAR at gatherings
                             mu_home = 0.36,   # SAR at home
                             phi_work = 10,    # SAR dispersion at work
@@ -13,6 +13,8 @@ offspring_model <- function(N = 100000L,      # number of iterations
                             option = "0",     # type of restriction ("0", "1", "2", or "3")
                             pi = 0,           # prevalence of infection
                             pr = 0,           # prevalence of immunity
+                            prop_asymp = 0.4, # proportion asymptomatic
+                            q_asymp = 0.5,    # relative reduction in transmission among asymptomatic
                             days = 5          # infectious period
                             ) {
   
@@ -21,10 +23,18 @@ offspring_model <- function(N = 100000L,      # number of iterations
   n_gather <- draw_contacts(N, k_gather, c_gather, option, days)
   n_home <- draw_contacts(N, k_home, NULL, "0", 1) # everyone sees same household members throughout infectious period
   
+  # determine who is asymptomatic
+  asymp <- rbinom(N, 1, prop_asymp)
+  
   # draw probability of infection given contact
   q_work <- rbeta(N, phi_work * mu_work, phi_work * (1 - mu_work))
   q_gather <- rbeta(N, phi_gather * mu_gather, phi_gather * (1 - mu_gather))
   q_home <- rbeta(N, phi_home * mu_home, phi_home * (1 - mu_home))
+  
+  # if asymptomatic reduce transmission probability by q_asymp
+  q_work <- q_work * (asymp * q_asymp + I(asymp == 0))
+  q_gather <- q_gather * (asymp * q_asymp + I(asymp == 0))
+  q_home <- q_home * (asymp * q_asymp + I(asymp == 0))
   
   # draw number of susceptible 
   S_work <- rbinom(N, n_work, 1 - pi - pr)
