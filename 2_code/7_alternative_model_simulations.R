@@ -206,11 +206,14 @@ sim5 <-
   })
 
 ggplot(sim5, aes(x = period, y = Rt)) +
+  geom_ribbon(aes(ymin = 0, ymax = 1), fill = "grey70", alpha = 0.3) +
   geom_line(aes(group = sim), alpha = 0.01, color = "#FC9272") +
   stat_summary(geom = "line") +
   stat_summary(geom = "point") +
   geom_vline(xintercept = 5, linetype = 'dotted') +
+ # geom_hline(yintercept = 1, linetype = "dashed") +
   coord_cartesian(expand = F) +
+  ylab(bquote(R[t])) +
   gatherings_theme() 
 
 
@@ -220,7 +223,8 @@ ggplot(sim5, aes(x = period, y = infected)) +
   stat_summary(geom = "point") +
   geom_vline(xintercept = 5, linetype = 'dotted') +
   coord_cartesian(expand = F) +
-  gatherings_theme() 
+  gatherings_theme() + 
+  ylab("Incident cases")
 
 
 # simulation 6: intermitten interventions ---------------------------------
@@ -249,7 +253,7 @@ sim6 <-
             pi = pi,
             pr = pr,
           ) 
-      } else if (i <= 10) {
+      } else if (i <= 15) {
         X <-
           offspring_model(
             N = N,
@@ -262,7 +266,7 @@ sim6 <-
             c_work = 5,
             option = "2"
           )
-      } else if (i <= 15) {
+      } else {
         X <-
           offspring_model(
             N = N,
@@ -273,19 +277,6 @@ sim6 <-
             pr = pr,
             c_gather = 10,
             c_work = 10,
-            option = "2"
-          )
-      } else if (i <= 20) {
-        X <-
-          offspring_model(
-            N = N,
-            k_work = k_work,
-            k_gather = k_gather,
-            k_home = k_home,
-            pi = pi,
-            pr = pr,
-            c_gather = 20,
-            c_work = 20,
             option = "2"
           )
       }
@@ -309,11 +300,13 @@ sim6 <-
   })
 
 ggplot(sim6, aes(x = period, y = Rt)) +
+  geom_ribbon(aes(ymin = 0, ymax = 1), fill = "grey70", alpha = 0.3) +
   geom_line(aes(group = sim), alpha = 0.01, color = "#FC9272") +
   stat_summary(geom = "line") +
   stat_summary(geom = "point") +
-  geom_vline(xintercept = c(5, 10, 15), linetype = 'dotted') +
+  geom_vline(xintercept = c(5, 15), linetype = 'dotted') +
   coord_cartesian(expand = F) +
+  ylab(bquote(R[t])) +
   gatherings_theme() 
 
 
@@ -321,9 +314,10 @@ ggplot(sim6, aes(x = period, y = infected)) +
   geom_line(aes(group = sim), alpha = 0.01, color = "#3182BD") +
   stat_summary(geom = "line") +
   stat_summary(geom = "point") +
-  geom_vline(xintercept = c(5, 10, 15), linetype = 'dotted') +
+  geom_vline(xintercept = c(5, 15), linetype = 'dotted') +
   coord_cartesian(expand = F) +
-  gatherings_theme() 
+  gatherings_theme() + 
+  ylab("Incident cases")
 
 
 
@@ -407,4 +401,5 @@ ggplot(sim7, aes(x = period, y = infected)) +
   stat_summary(geom = "point") +
 # geom_vline(xintercept = c(5, 10, 15), linetype = 'dotted') +
   coord_cartesian(expand = F) +
-  gatherings_theme() 
+  gatherings_theme() + 
+  ylab("Incident cases")
