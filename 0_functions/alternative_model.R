@@ -58,21 +58,22 @@ draw_contacts <- function(N, k, c = NULL, option = "0", days) {
       "0" = k,
       # option 1: set to c (most conservative)
       "1" = data.frame(
-        M = k$M[k$M <= c],
-        N = c(k$N[k$M < c], sum(k$N[k$M >= c])),
-        prob = c(k$prob[k$M < c], sum(k$prob[k$M >= c]))
+        M = k$M[k$M <= c - 1],
+        N = c(k$N[k$M < c - 1], sum(k$N[k$M >= c - 1])),
+        prob = c(k$prob[k$M < c - 1], sum(k$prob[k$M >= c - 1]))
       ), 
       # option 2: set to 0 (least conservative)
       "2" = data.frame(
-        M = k$M[k$M <= c],
-        N = c(k$N[k$M == 0] + sum(k$N[k$M > c]), k$N[k$M > 0 & k$M <= c]),
-        prob = c(k$prob[k$M == 0] + sum(k$prob[k$M > c]), k$prob[k$M > 0 & k$M <= c])
+        M = k$M[k$M <= c - 1],
+        N = c(k$N[k$M == 0] + sum(k$N[k$M > c - 1]), k$N[k$M > 0 & k$M <= c - 1]),
+        prob = c(k$prob[k$M == 0] + sum(k$prob[k$M > c - 1]), 
+                 k$prob[k$M > 0 & k$M <= c - 1])
       ), 
       # option 3: redraw until less than c (realistic?) 
       "3" = data.frame(
-        M = k$M[k$M <= c],
-        N = k$N[k$M <= c],
-        prob = k$N[k$M <= c] / sum(k$N[k$M <= c])
+        M = k$M[k$M <= c - 1],
+        N = k$N[k$M <= c - 1],
+        prob = k$N[k$M <= c - 1] / sum(k$N[k$M <= c - 1])
       )
     )
   }
