@@ -1,26 +1,28 @@
-offspring_model <- function(N = 100000L,      # number of iterations
-                            k_work,           # contact distribution for work
-                            k_gather,         # contact distribution for gatherings
-                            k_home,           # contact distribution for home
-                            mu_work = 0.02,   # SAR at work
-                            mu_gather = 0.08, # SAR at gatherings
-                            mu_home = 0.36,   # SAR at home
-                            phi_work = 10,    # SAR dispersion at work
-                            phi_gather = 1,   # SAR dispersion at gatherings
-                            phi_home = 10,    # SAR dispersion at home
-                            c_work = NULL,    # restriction cut-off work
-                            c_gather = NULL,  # restructione cut-off gatherings
-                            option = "0",     # type of restriction ("0", "1", "2", or "3")
-                            pi = 0,           # prevalence of infection
-                            pr = 0,           # prevalence of immunity
-                            prop_asymp = 0.4, # proportion asymptomatic
-                            q_asymp = 0.5,    # relative reduction in transmission among asymptomatic
-                            days = 5          # infectious period
+offspring_model <- function(N = 100000L,              # number of iterations
+                            k_work,                   # contact distribution for work
+                            k_gather,                 # contact distribution for gatherings
+                            k_home,                   # contact distribution for home
+                            mu_work = 0.02,           # SAR at work
+                            mu_gather = 0.08,         # SAR at gatherings
+                            mu_home = 0.36,           # SAR at home
+                            phi_work = 10,            # SAR dispersion at work
+                            phi_gather = 1,           # SAR dispersion at gatherings
+                            phi_home = 10,            # SAR dispersion at home
+                            c_work = NULL,            # restriction cut-off work
+                            c_gather = NULL,          # restructione cut-off gatherings
+                            option = "0",             # type of restriction ("0", "1", "2", or "3")
+                            pi = 0,                   # prevalence of infection
+                            pr = 0,                   # prevalence of immunity
+                            prop_asymp = 0.4,         # proportion asymptomatic
+                            q_asymp = 0.5,            # relative reduction in transmission among asymptomatic
+                            inf_period = 5,           # infectious period
+                            freq_gather = inf_period, # frequency restrictions on gatherings (num per infectious period)
+                            freq_work = inf_period    # frequency restrictions on work (num per infectious period)
                             ) {
   
   # draw contacts 
-  n_work <- draw_contacts(N, k_work, c_work, option, days)
-  n_gather <- draw_contacts(N, k_gather, c_gather, option, days)
+  n_work <- draw_contacts(N, k_work, c_work, option, freq_gather)
+  n_gather <- draw_contacts(N, k_gather, c_gather, option, freq_work)
   n_home <- draw_contacts(N, k_home, NULL, "0", 1) # everyone sees same household members throughout infectious period
   
   # determine who is asymptomatic
@@ -58,21 +60,22 @@ draw_contacts <- function(N, k, c = NULL, option = "0", days) {
       "0" = k,
       # option 1: set to c (most conservative)
       "1" = data.frame(
-        M = k$M[k$M <= c],
-        N = c(k$N[k$M < c], sum(k$N[k$M >= c])),
-        prob = c(k$prob[k$M < c], sum(k$prob[k$M >= c]))
+        M = k$M[k$M <= c - 1],
+        N = c(k$N[k$M < c - 1], sum(k$N[k$M >= c - 1])),
+        prob = c(k$prob[k$M < c - 1], sum(k$prob[k$M >= c - 1]))
       ), 
       # option 2: set to 0 (least conservative)
       "2" = data.frame(
-        M = k$M[k$M <= c],
-        N = c(k$N[k$M == 0] + sum(k$N[k$M > c]), k$N[k$M > 0 & k$M <= c]),
-        prob = c(k$prob[k$M == 0] + sum(k$prob[k$M > c]), k$prob[k$M > 0 & k$M <= c])
+        M = k$M[k$M <= c - 1],
+        N = c(k$N[k$M == 0] + sum(k$N[k$M > c - 1]), k$N[k$M > 0 & k$M <= c - 1]),
+        prob = c(k$prob[k$M == 0] + sum(k$prob[k$M > c - 1]), 
+                 k$prob[k$M > 0 & k$M <= c - 1])
       ), 
       # option 3: redraw until less than c (realistic?) 
       "3" = data.frame(
-        M = k$M[k$M <= c],
-        N = k$N[k$M <= c],
-        prob = k$N[k$M <= c] / sum(k$N[k$M <= c])
+        M = k$M[k$M <= c - 1],
+        N = k$N[k$M <= c - 1],
+        prob = k$N[k$M <= c - 1] / sum(k$N[k$M <= c - 1])
       )
     )
   }
