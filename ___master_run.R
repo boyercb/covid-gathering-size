@@ -1,7 +1,9 @@
 library(tidyverse)
 library(deSolve)
 library(rmutil)
-
+library(hexbin)
+library(gridExtra)
+library(RColorBrewer)
 
 # global parameters -------------------------------------------------------
 
@@ -13,6 +15,8 @@ rerun_simulation <- TRUE
 source("0_functions/simulation_functions.R")
 
 source("0_functions/plot_functions.R")
+
+source("0_functions/alternative_model.R")
 
 
 # run code ----------------------------------------------------------------
