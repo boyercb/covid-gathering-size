@@ -21,8 +21,8 @@ offspring_model <- function(N = 100000L,              # number of iterations
                             ) {
   
   # draw contacts 
-  n_work <- draw_contacts(N, k_work, c_work, option, freq_gather)
-  n_gather <- draw_contacts(N, k_gather, c_gather, option, freq_work)
+  n_work <- draw_contacts(N, k_work, c_work, option, freq_work)
+  n_gather <- draw_contacts(N, k_gather, c_gather, option, freq_gather)
   n_home <- draw_contacts(N, k_home, NULL, "0", 1) # everyone sees same household members throughout infectious period
   
   # determine who is asymptomatic
