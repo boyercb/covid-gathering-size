@@ -220,9 +220,9 @@ ggplot(filter(sim2, freq_gather == 5), aes(x = c_gather, y = value, color = fact
   option,
   levels = c("1", "3", "2"),
   labels = c(
-    "(1)\nSet gathering size to limit",
-    "(2)\nRedraw",
-    "(3)\nSet gathering size to 1"
+    "(1) Set gathering size to limit",
+    "(2) Redraw",
+    "(3) Set gathering size to 1"
   )))) +
   facet_grid(~ factor(name, labels = c(bquote(R[g]), bquote(R[t])))) +
   geom_hline(
@@ -236,7 +236,7 @@ ggplot(filter(sim2, freq_gather == 5), aes(x = c_gather, y = value, color = fact
   xlab("Gathering size limit (c)") +
   gatherings_theme() +
   theme(
-    legend.position = 'right'
+    legend.position = c(0.15, 0.85)
   )
 
 
@@ -316,11 +316,11 @@ sims3 %>%
   facet_grid(c_work ~ pi_0) +
   stat_ecdf() +
   scale_y_reverse(labels = rev(c(0, 0.25, 0.5, 0.75, 1))) +
-  ggtitle(subtitle = "Proportion infected") +
+  ggtitle(label = "", subtitle = "Proportion infected") +
   scale_color_brewer(name = bquote(p[r])) +
   labs(
     x = "Days intervention is in place",
-    y = "Probability that epidemic continues"
+    y = "Probability that epidemic survives to time t"
   ) +
   gatherings_theme() +
   theme(
@@ -342,8 +342,8 @@ N_sims_per_timestep <- 1000
 simulate_scenarios <- function(x,              # blank argument for map function
                                N = 20,         # number infected at start 
                                N_r = 0,        # number immune at start
-                               pop = 1000000L, # population size
-                               timesteps = 50, # number of time steps 
+                               pop = 100000L,  # population size
+                               timesteps = 100, # number of time steps 
                                max_pi,         # when to start restriction
                                min_pi          # when to lift restriction
                                ) {
@@ -357,7 +357,8 @@ simulate_scenarios <- function(x,              # blank argument for map function
   # vectors for collecting number infected and Rt value at each time step
   Nvec <- vector()
   Rtvec <- vector()
-  
+  pivec <- vector()
+  restrictvec <- vector()
   i <- 1
   
   while(i <= timesteps) {
@@ -382,9 +383,10 @@ simulate_scenarios <- function(x,              # blank argument for map function
           k_work = k_work,
           k_gather = k_gather,
           k_home = k_home,
+          mu_home = 0.17,
           pi = pi,
           pr = pr,
-          c_gather = 5,
+          c_gather = 4,
           option = "3"
         )
     } else { # if restriction not in place 
@@ -394,6 +396,7 @@ simulate_scenarios <- function(x,              # blank argument for map function
           k_work = k_work,
           k_gather = k_gather,
           k_home = k_home,
+          mu_home = 0.17,
           pi = pi,
           pr = pr
         ) 
@@ -401,10 +404,13 @@ simulate_scenarios <- function(x,              # blank argument for map function
     
     N <- X %>% colSums() %>% sum()
     Rt <- X %>% colMeans() %>% sum()
+    pi <- N / pop
     
     Nvec[i] <- N
     Rtvec[i] <- Rt
-    pi <- N / pop
+    pivec[i] <- pi
+    restrictvec[i] <- as.numeric(restrict)
+    
     if (i > 1) {
       pr <- sum(Nvec[1:(i-1)]) / pop
     }
@@ -414,6 +420,9 @@ simulate_scenarios <- function(x,              # blank argument for map function
     sim = rep(x, timesteps),
     period = 1:timesteps,
     infected = Nvec, 
+    cumulative = cumsum(Nvec),
+    pi = pivec,
+    restrict = restrictvec,
     Rt = Rtvec
   ))
 }
@@ -427,7 +436,7 @@ scenario1 <-
     1:N_sims_per_timestep,
     simulate_scenarios,
     min_pi = 0.001,
-    max_pi = 0.01,
+    max_pi = 0.005,
     .progress = TRUE
   )
 
@@ -452,6 +461,18 @@ ggplot(scenario1, aes(x = period, y = infected)) +
   ylab("Incident cases")
 
 # Possible: cumulative cases over time
+ggplot(scenario1, aes(x = period, y = cumulative)) +
+  geom_line(aes(group = sim), alpha = 0.01, color = "#3182BD") +
+  stat_summary(geom = "line") +
+  stat_summary(geom = "point") +
+  # geom_vline(xintercept = c(5, 10, 15), linetype = 'dotted') +
+  coord_cartesian(expand = F) +
+  gatherings_theme() + 
+  ylab("Incident cases")
+
+
+# plan for parallel multiprocess
+future::plan(future::multiprocess, workers = 4)
 
 # run scenario 2
 scenario2 <-
@@ -459,7 +480,7 @@ scenario2 <-
     1:N_sims_per_timestep,
     simulate_scenarios,
     min_pi = 0.001,
-    max_pi = 0.10,
+    max_pi = 0.02,
     .progress = TRUE
   )
 
@@ -484,4 +505,65 @@ ggplot(scenario2, aes(x = period, y = infected)) +
   ylab("Incident cases")
 
 # Possible: cumulative cases over time
+ggplot(scenario2, aes(x = period, y = cumulative)) +
+  geom_line(aes(group = sim), alpha = 0.01, color = "#3182BD") +
+  stat_summary(geom = "line") +
+  stat_summary(geom = "point") +
+  # geom_vline(xintercept = c(5, 10, 15), linetype = 'dotted') +
+  coord_cartesian(expand = F) +
+  gatherings_theme() + 
+  ylab("Incident cases")
 
+
+# alternative plots
+ggplot(filter(scenario2, sim != 1), aes(x = period, y = infected)) +
+  geom_step(aes(group = sim), alpha = 0.05, color = "#3182BD") +
+  geom_step(aes(group = sim), data = filter(scenario2, sim == 1), size = 1.2) +
+  coord_cartesian(expand = F) +
+  gatherings_theme() + 
+  ylab("Incident cases")
+
+ggplot(filter(scenario2, sim != 1), aes(x = period, y = Rt)) +
+  geom_step(aes(group = sim), alpha = 0.05, color = "#FC9272") +
+  geom_step(aes(group = sim), data = filter(scenario2, sim == 1), size = 1.2) +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  # geom_vline(xintercept = c(5, 10, 15), linetype = 'dotted') +
+  coord_cartesian(expand = F) +
+  gatherings_theme() 
+
+
+ggplot(filter(scenario1, sim != 1), aes(x = period, y = infected)) +
+  geom_step(aes(group = sim), alpha = 0.05, color = "#3182BD") +
+  geom_step(aes(group = sim), data = filter(scenario1, sim == 1), size = 1.2) +
+  coord_cartesian(expand = F) +
+  gatherings_theme() + 
+  ylab("Incident cases")
+
+ggplot(filter(scenario1, sim != 1), aes(x = period, y = Rt)) +
+  geom_step(aes(group = sim), alpha = 0.05, color = "#FC9272") +
+  geom_step(aes(group = sim), data = filter(scenario1, sim == 1), size = 1.2) +
+  geom_hline(yintercept = 1, linetype = "dashed") +
+  # geom_vline(xintercept = c(5, 10, 15), linetype = 'dotted') +
+  coord_cartesian(expand = F) +
+  gatherings_theme() 
+
+ggplot(filter(scenario1, sim != 1), aes(x = period, y = cumulative)) +
+  geom_step(aes(group = sim), alpha = 0.01, color = "#3182BD") +
+  geom_step(aes(group = sim), data = filter(scenario1, sim == 1), size = 1.2) +
+  coord_cartesian(expand = F) +
+  gatherings_theme() + 
+  ylab("Incident cases")
+
+
+df <- 
+  bind_rows(scenario1, scenario2, .id = "scenario") %>%
+  mutate(Rt = ifelse(Rt > 5, NA, Rt)) %>%
+  pivot_longer(c("Rt", "infected", "cumulative"))
+ 
+ ggplot(filter(df, sim != 2), aes(x = period, y = value)) +
+  facet_grid(name ~ factor(scenario, labels = c("scenario 1", "scenario 2")), scales = "free_y") +
+  geom_step(aes(group = sim), alpha = 0.01, color = "#3182BD") +
+  geom_step(aes(group = sim), data = filter(df, sim == 2), size = 1.1) +
+  coord_cartesian(expand = F) +
+  gatherings_theme() 
+  
