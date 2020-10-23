@@ -147,18 +147,93 @@ plot_sim1 %>%
 # Axis on the right that says gathering size limitation
 # Restriction type 0 = no restriction, 1 = blabla, 2 =, 3 = blablabla
 
-# sim_results %>%
-#   filter(pi == 0.01 & pr == 0) %>%
-#   ggplot(., aes(x = factor(c), y = R_g, fill = factor(phi))) +
-#   geom_violin(draw_quantiles = c(0.5), trim = FALSE) +
-#   facet_grid(option~phi) + 
-#   gatherings_theme() +
-#   scale_fill_brewer() +
-#   theme(legend.position = "none") +
-#   labs(
-#     x = "Restriction type",
-#     y = bquote(R[g])
-#   )
+sim1a_params <- 
+  expand_grid(
+    option = c("0", "1", "2", "3"),
+    c_gather = c(5, 10, 15, 25, 50),
+    phi = c(0.1, 1, 10, 100)
+  )
+
+sim1a <- 
+  pmap_dfr(as.list(sim1a_params), function(option, c_gather, phi) {
+    X <- offspring_model(
+      N = 100000,
+      k_work = k_work,
+      k_gather = k_gather,
+      k_home = k_home,
+      phi_work = phi,
+      phi_gather = phi,
+      phi_home = phi,
+      c_gather = c_gather,
+      option = option
+    )
+    return(tibble(
+      phi = phi,
+      option = option,
+      c_gather = c_gather,
+      as_tibble(X)
+    ))
+  }) 
+
+plot_sim1a <- sim1a %>% 
+  pivot_longer(cols = starts_with("X_")) %>%
+  mutate(
+    name = factor(
+      x = name,
+      levels = c("X_home", "X_gather", "X_work"),
+      labels = c("Home", "Gatherings", "Work")
+    )
+  ) %>%
+  filter(name == "Gatherings")
+
+plot_sim1a %>%
+  group_by(option, phi, c_gather) %>%
+  filter(phi == 0.1) %>%
+  summarise(
+   mean = mean(value),
+   q99 = quantile(value, 0.995),
+  ) %>%
+  filter(!(option == "0" & c_gather %in% c(5, 10))) %>%
+  mutate(
+    new_option = case_when(
+      option == "0" & c_gather == 15 ~ "1",
+      option == "0" & c_gather == 25 ~ "2",
+      option == "0" & c_gather == 50 ~ "3",
+      TRUE ~ option
+    ),
+    c_gather = ifelse(option == "0", 100, c_gather),
+  ) %>%
+  pivot_longer(c("mean", "q99")) %>%
+  mutate(label_y = ifelse(name == "mean", value + 0.1, value + 3)) %>%
+ggplot(., aes(x = factor(c_gather, labels = c('5', '10', '15', '25', '50', bquote("\U221E"))), y = value, fill = factor(c_gather))) +
+  facet_grid(
+    factor(
+      name,
+      levels = c("q99", "mean"),
+      labels = c("99th", "Mean")
+    ) ~
+      factor(
+        new_option,
+        levels = c("1", "3", "2"),
+        labels = c(
+          "(1)\nSet gathering size to limit",
+          "(2)\nRedraw",
+          "(3)\nSet gathering size to 1"
+        )
+      ),
+    scales = "free_y"
+  ) +
+  geom_point(size = 2) +
+  geom_segment(aes(xend = factor(c_gather, labels = c('5', '10', '15', '25', '50', bquote("\U221E"))), yend = 0)) +
+  geom_text(aes(label = round(value, 1), y = label_y)) +
+  xlab("\nGathering size restriction (c)") +
+  ylab("Number of secondary cases at gatherings") +
+  gatherings_theme() +
+  theme(
+    legend.position = "none",
+    strip.text.y = element_text(angle = 0)
+  )
+
 
 # how low do we have to go? -----------------------------------------------
 
@@ -261,7 +336,7 @@ sims3 <-
       pr <- pr_0
       i <- 1
       
-      while(i <= 50) {
+      while(i <= 75) {
         N <-
           offspring_model(
             N = N,
@@ -273,12 +348,12 @@ sims3 <-
             mu_home = 0.17,
             c_gather = 4,
             c_work = if(!is.na(c_work)) c_work else NULL,
-            option = "2"
+            option = "3"
           ) %>% colSums() %>% sum()
         Nvec[i] <- N
         pi <- N / pop
         if (i > 1) {
-          pr <- sum(Nvec[1:(i-1)]) / pop
+          pr <- sum(Nvec[1:(i-1)]) / pop + pr_0
         }
         i <- i + 1
       }
@@ -319,10 +394,11 @@ sims3 %>%
   ggtitle(label = "", subtitle = "Proportion infected") +
   scale_color_brewer(name = bquote(p[r])) +
   labs(
-    x = "Days intervention is in place",
+    x = "Time intervention is in place (days)",
     y = "Probability that epidemic survives to time t"
   ) +
   gatherings_theme() +
+  theme(plot.title = element_text(hjust = 0.5)) +
   theme(
     legend.position = c(0.95, 0.2)
   )
