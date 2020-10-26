@@ -1,6 +1,6 @@
 # load the BBC pandemic data ----------------------------------------------
 
-k_bbc <- read_csv("1_data/contact_dist_BBCPandemic/contact_distributions_o18_v1.csv")
+k_bbc <- read_csv("1_data/contact_dist_BBCPandemic/contact_distributions_o18.csv")
 
 k_home <- k_bbc %>%
   rename(M = e_home) %>%
