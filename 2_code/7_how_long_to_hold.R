@@ -4,7 +4,9 @@ how_long_params <-
   expand_grid(
     pi_0 = c(0.001, 0.005, 0.01, 0.02),
     pr_0 = c(0, 0.10, 0.20),
-    c_work = c(NA, 1)
+    c_work = c(NA, 1),
+    popsize = 100000L,
+    sims = 10000
   )
 
 if (rerun_simulation) {
@@ -15,10 +17,10 @@ if (rerun_simulation) {
   tictoc::tic()
   
   how_long <- 
-    pmap_dfr(as.list(how_long_params), function(pi_0, pr_0, c_work) {
-      map_dfr(1:10000, function(x) {
+    pmap_dfr(as.list(how_long_params), function(pi_0, pr_0, c_work, sims, popsize) {
+      map_dfr(1:sims, function(x) {
         
-        pop <- 100000L
+        pop <- popsize
         N <- pi_0 * pop
         Nvec <- vector()
         
@@ -62,11 +64,11 @@ if (rerun_simulation) {
   how_long <- cbind(how_long_params, how_long)
   
   # save a copy
-  write_rds(sim_results, "1_data/how_long.rds")
+  write_rds(how_long, "1_data/how_long.rds")
 } else {
   
   # read in saved results
-  how_long <- read_rds(sim_results, "1_data/how_long.rds")
+  how_long <- read_rds("1_data/how_long.rds")
 }
 
 how_long_plot <- 
