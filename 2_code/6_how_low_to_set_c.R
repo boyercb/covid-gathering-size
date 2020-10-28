@@ -10,7 +10,7 @@ how_low_params <-
 how_low <- 
   pmap_dfr(as.list(how_low_params), function(c_gather, freq_gather, option) {
     X <- offspring_model(
-      N = 500000,
+      N = 1000000,
       k_work = k_work,
       k_gather = k_gather,
       k_home = k_home,
@@ -38,7 +38,7 @@ how_low_plot1 <-
       "(2) Redraw",
       "(3) Set gathering size to 1"
     )))) +
-  facet_grid(~ factor(name, labels = c(bquote(R[g]), bquote(R[t])))) +
+  facet_grid(~ factor(name, labels = c(bquote("Gathering-specific ("*R[g]*")"), bquote("Total ("*R[t]*")"))), labeller = label_parsed) +
   geom_hline(
     yintercept = 1,
     linetype = 'dashed',
@@ -46,7 +46,7 @@ how_low_plot1 <-
   ) +
   geom_step(size = 1.1) +
   scale_color_brewer(name = "Restriction type", palette = "Greens") +
-  ylab("") +
+  ylab("Reproductive number (R)") +
   xlab("Gathering size limit (c)") +
   gatherings_theme() +
   theme(
