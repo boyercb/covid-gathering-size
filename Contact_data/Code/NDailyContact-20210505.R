@@ -163,13 +163,20 @@ Sekara_S9 <- read_excel("Desktop/Contact_data/Data/Sekara/Sekara_S9.xlsx",
                         sheet = "FigureS9",
                         col_names = FALSE)
 #View(Sekara_S9)
-colnames(Sekara_S9) <- c("n", "Sekara_S9")
+colnames(Sekara_S9) <- c("n", "Sekara_S9prop")
 head(Sekara_S9)
-sum(Sekara_S9$Sekara_S9)
+sum(Sekara_S9$Sekara_S9prop)
+
+# Number of gatherings (page 13 of Appendix)
+# Off campus 13872
+# On campus   9195
+# Total      23067
 
 Sekara_S9 <- Sekara_S9 %>%
   mutate(n = round(n),
-         Sekara_S9 = round(Sekara_S9, 5))
+         Sekara_S9prop = round(Sekara_S9prop, 5),
+         Sekara_S9 = Sekara_S9prop*23067,
+         Sekara_S9 = round(Sekara_S9))
 
 ggplot(Sekara_S9) +
   geom_point(aes(x = n, y = Sekara_S9)) +
@@ -177,6 +184,7 @@ ggplot(Sekara_S9) +
   theme_minimal()
 #
 DFcontacts <- merge(DFcontacts, Sekara_S9, all = TRUE)
+head(DFcontacts)
 #
 
 
@@ -215,8 +223,7 @@ DFcontactsprop <- DFcontacts %>%
          COMIX_workprop = COMIX_work / sum(COMIX_work, na.rm = T),
          COMIX_schoolprop = COMIX_school / sum(COMIX_school, na.rm = T),
          COMIX_otherprop = COMIX_other / sum(COMIX_other, na.rm = T),
-         COMIX_physicalprop = COMIX_physical / sum(COMIX_physical, na.rm = T),
-         Sekara_S9prop = Sekara_S9) # Sekara data are already proportion.s
+         COMIX_physicalprop = COMIX_physical / sum(COMIX_physical, na.rm = T)) #,Sekara_S9prop = Sekara_S9) # Sekara data are already proportion.s
 head(DFcontactsprop)
 
 #
@@ -239,9 +246,6 @@ ggplot(DFcontactsprop) +
   labs(colour = "Data source") +
   ylab("Proportion") + xlab("Number of contacts")
 #
-
-
-
 
 
 #
@@ -404,8 +408,6 @@ hist(tij_pres_SFHH4$n)
 # Doesn't mean much as there were 403 participants, so everyone walked past everyone.
 #
 
-
-
 #
 # There's another conference they collected data at !!!
 # The 25C3, Choas conference Berlin 
@@ -413,8 +415,96 @@ hist(tij_pres_SFHH4$n)
 # But need to obtain data separately.
 
 
-
 ###
+
+#############
+
+
+# Fitting powerlaw distribution
+
+
+DFcontacts
+DFcontactsprop
+head(DFcontacts)
+head(DFcontactsprop)
+colnames(DFcontactsprop)
+
+# Cut all distributions at 4 or 5
+head(DFcontactsprop)
+
+DFcontactsprop2 <- DFcontactsprop %>%
+  filter(n > 4)
+
+
+# Need a column that's n+1
+# Calculate the maximum likelihood of the alphas (one for each dataset)
+DFcontactsprop <- DFcontactsprop %>%
+  mutate(nplus1 = n + 1,
+         alpha_BBC_other = (sum(BBC_other, na.rm = T)) / sum((log(nplus1)*BBC_other), na.rm = T),
+         alpha_BBC_total = (sum(BBC_total, na.rm = T)) / sum((log(nplus1)*BBC_total), na.rm = T),
+         alpha_Sekara_S9 = (sum(Sekara_S9, na.rm = T)) / sum((log(nplus1/4)*Sekara_S9), na.rm = T),
+         line_BBC_other = alpha_BBC_other / nplus1^(alpha_BBC_other+1),
+         line_BBC_total = alpha_BBC_total / nplus1^(alpha_BBC_total+1),
+         line_Sekara_S9 = alpha_Sekara_S9*(4^alpha_Sekara_S9) / nplus1^(alpha_Sekara_S9+1))
+
+DFcontactsprop2 <- DFcontactsprop2 %>%
+  mutate(nplus1 = n + 1,
+         alpha_BBC_other = (sum(BBC_other, na.rm = T)) / sum((log(nplus1/6)*BBC_other), na.rm = T),
+         alpha_BBC_total = (sum(BBC_total, na.rm = T)) / sum((log(nplus1/6)*BBC_total), na.rm = T),
+         alpha_Sekara_S9 = (sum(Sekara_S9, na.rm = T)) / sum((log(nplus1/6)*Sekara_S9), na.rm = T),
+         line_BBC_other = alpha_BBC_other*(6^alpha_BBC_other) / nplus1^(alpha_BBC_other+1),
+         line_BBC_total = alpha_BBC_total*(6^alpha_BBC_total) / nplus1^(alpha_BBC_total+1),
+         line_Sekara_S9 = alpha_Sekara_S9*(6^alpha_Sekara_S9) / nplus1^(alpha_Sekara_S9+1))
+
+head(DFcontactsprop)
+head(DFcontactsprop2)
+
+#
+ggplot(DFcontactsprop2) +
+ # geom_point(aes(x = n, y = BBC_homeprop, colour = "BBC_home")) +
+#  geom_point(aes(x = n, y = BBC_workprop, colour = "BBC_work")) +
+  geom_point(aes(x = n, y = BBC_otherprop, colour = "BBC_other")) +
+  geom_point(aes(x = n, y = BBC_totalprop, colour = "BBC_total")) +
+  geom_line(aes(x = n, y = line_BBC_other, colour = "BBC_other")) +
+  geom_line(aes(x = n, y = line_BBC_total, colour = "BBC_total")) +
+#  geom_point(aes(x = n, y = COMIX_n_contactsprop, colour = "COMIX_n_contacts")) +
+#  geom_point(aes(x = n, y = COMIX_totprop, col = "COMIX_tot")) +
+#  geom_point(aes(x = n, y = COMIX_homeprop, col = "COMIX_home")) +
+#  geom_point(aes(x = n, y = COMIX_workprop, col = "COMIX_work")) +
+#  geom_point(aes(x = n, y = COMIX_schoolprop, col = "COMIX_school")) +
+#  geom_point(aes(x = n, y = COMIX_otherprop, col = "COMIX_other")) +
+#  geom_point(aes(x = n, y = COMIX_physicalprop, col = "COMIX_physical")) +
+  geom_point(aes(x = n, y = Sekara_S9prop, col = "Sekara_S9")) +
+  geom_line(aes(x = n, y = line_Sekara_S9, colour = "Sekara_S9")) +
+  
+  theme_minimal() +
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(colour = "Data source") +
+  ylab("Proportion") + xlab("Number of contacts")
+#
+
+# Fitting as if whole distribution is a power law, which it isn't. 
+
+#
+#
+
+
+#
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
