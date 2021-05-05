@@ -7,7 +7,7 @@
 ### Load libraries
 library(tidyverse)
 library(magrittr)
-
+library(readxl)
 
 ### 1) BBC Pandemic
 
@@ -159,7 +159,9 @@ sum(DFcontacts$COMIX_n_contacts, na.rm = T) - sum(DFcontacts$COMIX_tot, na.rm = 
 
 # I extracted the coordinates from the points of Figure S9 using the online tool WebPlotDigitizer.
 # Note : S9 doesn't give the number of occurences, only the proportion of gatherings of each size.
-Sekara_S9 <- read_excel("Desktop/Contact_data/Data/Sekara/Sekara_S9.xlsx", col_names = FALSE)
+Sekara_S9 <- read_excel("Desktop/Contact_data/Data/Sekara/Sekara_S9.xlsx",
+                        sheet = "FigureS9",
+                        col_names = FALSE)
 #View(Sekara_S9)
 colnames(Sekara_S9) <- c("n", "Sekara_S9")
 head(Sekara_S9)
