@@ -8,6 +8,7 @@
   ######################
 
 library(tidyverse)
+library(magrittr)
 library(readxl)
 library(poweRlaw)
 library(wesanderson)
