@@ -1,6 +1,6 @@
 # values of R_g, R_h, R_w -------------------------------------------------
 
-lorenz_results %>%
+lorenz_plot %>%
   filter(selected == 1) %>%
   group_by(name) %>%
   summarise(

@@ -8,7 +8,7 @@ lorenz_params <-
 lorenz_results <- 
   map_dfr(lorenz_params$phi, function(phi) {
     X <- offspring_model(
-      N = 100000,
+      N = SIMS,
       k_work = k_work,
       k_gather = k_gather,
       k_home = k_home,

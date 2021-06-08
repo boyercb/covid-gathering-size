@@ -6,24 +6,24 @@ k_work$prob[k_work$M == 0] # 39%
 k_gather$prob[k_gather$M == 0] # 35%
 
 bbc_plot <- ggplot() +
-  geom_point(mapping = aes(x = M_plus_1, y = prob, colour = "#a6cee3"),
-             data = k_home) +
-  geom_point(mapping = aes(x = M_plus_1, y = prob, colour = "#fb9a99"),
-             data = k_work) +
-  geom_point(mapping = aes(x = M_plus_1, y = prob, colour = "#fdbf6f"),
-             data = k_gather) +
+  geom_point(mapping = aes(x = M_plus_1, y = N, colour = "#a6cee3"),
+             data = k_home, alpha = 0.75, size = 2) +
+  geom_point(mapping = aes(x = M_plus_1, y = N, colour = "#fb9a99"),
+             data = k_work, alpha = 0.75, size = 2) +
+  geom_point(mapping = aes(x = M_plus_1, y = N, colour = "#fdbf6f"),
+             data = k_gather, alpha = 0.75, size = 2) +
   scale_y_log10() + scale_x_continuous(
     trans = 'log10',
-    breaks = c(1, 11, 101),
-    labels = c("1" = "0", "11" = "10", "101" = "100")
+    breaks = c(1, 2, 11, 101),
+    labels = c("1" = "0", "2" = "1",  "11" = "10", "101" = "100")
   ) +
-  labs(title = "Daily contacts (adults)") +
-  ylab("Probability (log scale)") +
+#  labs(title = "Daily contacts (adults)") +
+  ylab("Number of participants (log scale)") +
   xlab("Number of contacts (log scale)") +
   scale_color_identity(
     name = "Type of contact",
     breaks = c("#a6cee3", "#fb9a99", "#fdbf6f"),
-    labels = c("Home", "Work or School", "Other gatherings"),
+    labels = c("Home", "Work or school", "Other gatherings"),
     guide = "legend"
   ) +
   gatherings_theme() +
@@ -31,7 +31,8 @@ bbc_plot <- ggplot() +
 
 bbc_plot
 
-pdf("3_results/bbc_plot.pdf", width = 5, height = 5)
+
+pdf("3_results/bbc_plot.pdf", width = 7, height = 7)
 print(bbc_plot)
 dev.off()
 

@@ -25,7 +25,7 @@ library(ggpubr)
 #######################
 
 #Load data of number of contacts from BBC Pandemic   
-BBCpandemic <- read_csv("GitHub/covid-gathering-size/Contact_data/Data/BBC_Pandemic/contact_distributions_o18.csv")
+BBCpandemic <- read_csv("Contact_data/Data/BBC_Pandemic/contact_distributions_o18.csv")
 names(BBCpandemic) <- c("BBC_home", "BBC_work", "BBC_other")
 BBCpandemic
 #head(BBCpandemic)
@@ -88,7 +88,7 @@ head(DFcontacts)
 # #
 
 # This dataset has number of contacts per setting !
-COMIX_contacts <- readRDS("GitHub/covid-gathering-size/Contact_data/Data/COMIX/clean_contacts.rds")
+COMIX_contacts <- readRDS("Contact_data/Data/COMIX/clean_contacts.rds")
 COMIX_contacts <- COMIX_contacts[with(COMIX_contacts, order(part_id, cont_id)),]
 COMIX_contacts <- COMIX_contacts %>% select(-c("cnt_gender", "cnt_age_est_min", "cnt_age_est_max"))
 COMIX_contacts
@@ -185,7 +185,7 @@ head(DFcontacts)
 
 # I extracted the coordinates from the points of Figure S9 using the online tool WebPlotDigitizer.
 # Note : S9 doesn't give the number of occurences, only the proportion of gatherings of each size.
-Sekara_S9 <- read_excel("GitHub/covid-gathering-size/Contact_data/Data/Sekara/Sekara_S9.xlsx",
+Sekara_S9 <- read_excel("Contact_data/Data/Sekara/Sekara_S9.xlsx",
                         sheet = "FigureS9",
                         col_names = FALSE)
 #View(Sekara_S9)
@@ -311,51 +311,96 @@ my_col4
 
 ## Figure 1
 plotFig1 <- ggplot(DFcontactsprop) +
-  geom_point(aes(x = n_gatherings, y = Sekara_S9prop, colour = "Sekara et al.")) +
-  geom_point(aes(x = n_gatherings, y = BBC_homeprop, colour = "BBC home")) +
-  geom_point(aes(x = n_gatherings, y = BBC_workprop, colour = "BBC work/school")) +
-  geom_point(aes(x = n_gatherings, y = BBC_otherprop, colour = "BBC other")) +
-  geom_point(aes(x = n_gatherings, y = BBC_totalprop, colour = "BBC total")) +
+  geom_point(aes(x = n_gatherings, y = Sekara_S9prop, colour = "Sekara et al."), shape = 16, size = 1.5) +
+  geom_point(aes(x = n_gatherings, y = BBC_homeprop, colour = "BBC home"), shape = 16, size = 1.5) +
+  geom_point(aes(x = n_gatherings, y = BBC_workprop, colour = "BBC work/school"), shape = 16, size = 1.5) +
+  geom_point(aes(x = n_gatherings, y = BBC_otherprop, colour = "BBC other"), shape = 16, size = 1.5) +
+  geom_point(aes(x = n_gatherings, y = BBC_totalprop, colour = "BBC total"), shape = 16, size = 1.5) +
   scale_color_manual(values = my_col5,
                      limits = c("Sekara et al.", "BBC work/school", "BBC total", "BBC other", "BBC home")) +
-  theme_minimal() +
+  theme_pubr(base_size = 11, base_family = "Palatino") +
+  theme(legend.position = c(0.85, 0.75))+
   scale_x_log10() +
   scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                 labels = trans_format("log10", math_format(10^.x))) +
   annotation_logticks() +
   labs(colour = "Data source") +
-  ylab("Proportion") + xlab("Size of gatherings")
+  ylab("Pr(K = k)") + xlab("Size of gatherings (k)")
 plotFig1
+
 
 # Figure 2
 plotFig2 <- ggplot(DFcontactsprop) +
-  geom_point(aes(x = n_gatherings, y = Sekara_S9prop, colour = "Sekara et al."), alpha = 5/10, shape = 19) +
-  geom_point(aes(x = n_gatherings, y = BBC_homeprop, colour = "BBC home"), alpha = 5/10, shape = 19) +
-  geom_point(aes(x = n_gatherings, y = BBC_workprop, colour = "BBC work/school"), alpha = 5/10, shape = 19) +
-  geom_point(aes(x = n_gatherings, y = BBC_otherprop, colour = "BBC other"), alpha = 5/10, shape = 19) +
-  geom_point(aes(x = n_gatherings, y = BBC_totalprop, colour = "BBC total"), alpha = 5/10, shape = 19) +
-  geom_point(aes(x = n_gatherings, y = COMIX_homeprop, colour = "COMIX home")) +
-  geom_point(aes(x = n_gatherings, y = COMIX_workschoolprop, colour = "COMIX work/school")) +
-  geom_point(aes(x = n_gatherings, y = COMIX_otherprop, colour = "COMIX other")) +
-  geom_point(aes(x = n_gatherings, y = COMIX_totprop, colour = "COMIX total")) +
+  geom_point(aes(x = n_gatherings, y = Sekara_S9prop, colour = "Sekara et al."), alpha = 5/10, shape = 3) +
+  geom_point(aes(x = n_gatherings, y = BBC_homeprop, colour = "BBC home"), alpha = 5/10, shape = 3) +
+  geom_point(aes(x = n_gatherings, y = BBC_workprop, colour = "BBC work/school"), alpha = 5/10, shape = 3) +
+  geom_point(aes(x = n_gatherings, y = BBC_otherprop, colour = "BBC other"), alpha = 5/10, shape = 3) +
+  geom_point(aes(x = n_gatherings, y = BBC_totalprop, colour = "BBC total"), alpha = 5/10, shape = 3) +
+  geom_point(aes(x = n_gatherings, y = COMIX_homeprop, colour = "COMIX home"), size = 1.8, shape = 16) +
+  geom_point(aes(x = n_gatherings, y = COMIX_workschoolprop, colour = "COMIX work/school"), size= 1.8, shape = 16) +
+  geom_point(aes(x = n_gatherings, y = COMIX_otherprop, colour = "COMIX other"), size = 1.8, shape = 16) +
+  geom_point(aes(x = n_gatherings, y = COMIX_totprop, colour = "COMIX total"), size = 1.8, shape = 16) +
   scale_color_manual(values = my_col9,
                      limits = c("COMIX work/school", "COMIX total", "COMIX other", "COMIX home",
                        "Sekara et al.", "BBC work/school", "BBC total", "BBC other", "BBC home")) +
-  theme_minimal() +
+  theme_pubr(base_size = 11, base_family = "Palatino") +
+  theme(legend.position = "right")+
   scale_x_log10() +
   scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                 labels = trans_format("log10", math_format(10^.x))) +
   annotation_logticks() +
   labs(colour = "Data source") +
-  ylab("Proportion") + xlab("Size of gatherings")
+  ylab("Pr(K = k)") + xlab("Size of gatherings (k)")
 plotFig2
 
+
+plotFig2 <- ggplot(DFcontactsprop %>% 
+                     select(-Sekara_S9prop, -COMIX_physicalprop, -COMIX_workprop, -COMIX_schoolprop) %>%
+                     pivot_longer(cols = ends_with("prop")) %>%
+                     separate(name, c("source", "variable"), sep = "_", remove = FALSE) %>%
+                     mutate(
+                       variable = case_when(
+                         variable == "homeprop" ~ "Home",
+                         variable == "otherprop" ~ "Other",
+                         variable == "totalprop" | variable == "totprop" ~ "Total",
+                         variable == "workprop" | variable == "workschoolprop" ~ "Work/school"
+                        ),
+                       source = case_when(
+                         source == "BBC" ~ "BBC Pandemic",
+                         source == "COMIX" & variable == "Home" ~ "COMIX home",
+                         source == "COMIX" & variable == "Work/school" ~ "COMIX work/school",
+                         source == "COMIX" & variable == "Total" ~ "COMIX total",
+                         source == "COMIX" & variable == "Other" ~ "COMIX other",
+                       ),
+                       source = factor(source, levels = c(
+                         "BBC Pandemic",
+                         "COMIX work/school",
+                         "COMIX total",
+                         "COMIX other",
+                         "COMIX home"
+                       )),
+                       variable = factor(variable, levels = c(
+                         "Home",
+                         "Work/school",
+                         "Other",
+                         "Total"
+                       ))
+                     )
+                   ) +
+  facet_wrap(~variable, scales = "free") +
+  scale_color_manual(values = c(alpha("grey75", 0.5), "#F2AD00", "#5BBCD6", "#F98400",  "#00A08A")) +
+  theme_pubr(base_size = 10, base_family = "Palatino") +
+  theme(legend.position = "none") +
+  scale_x_log10() +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", math_format(10^.x))) +
+  annotation_logticks() +
+  geom_point(aes(x = n_gatherings, y = value, color = source), shape = 16, size = 1.5) +
+  labs(colour = "Data source") +
+  ylab("Pr(K = k)") + xlab("Size of gatherings (k)")
+plotFig2
 # Join the two plots
-ggarrange(plotFig1, plotFig2) #, legend="bottom")
-#
-
-
-
+ggarrange(plotFig1, plotFig1cdf, legend = "right") #, legend="bottom")
 
 
 
@@ -481,42 +526,87 @@ df_geomtext <- data.frame(x = c(0.1, 0.1, 0.1, 0.1, 0.1),
                           colour = c("BBC total", "BBC work/school", "BBC other", "BBC home", "Sekara et al."))
 #df_geomtext$label <- paste("alpha =", round(df_geomtext$alpha, 2), "and xmin =", round(df_geomtext$xmin, 2))
 df_geomtext$label <- paste0("alpha ==", format(round(df_geomtext$alpha, 2), nsmall = 2),
-                            "~and~x[min] ==", round(df_geomtext$xmin, 2))
+                            "~and~k[min] ==", round(df_geomtext$xmin, 2))
 
 # Plot
 plotFig3 <- ggplot() +
-  geom_point(data = plot.displ_BBC_total, aes(x = log(x), y = log(y), col = "BBC total"), alpha = 5/10, shape = 16) +
-  geom_point(data = plot.displ_BBC_work, aes(x = log(x), y = log(y), col = "BBC work/school"), alpha = 5/10, shape = 16) +
-  geom_point(data = plot.displ_BBC_other, aes(x = log(x), y = log(y), col = "BBC other"), alpha = 5/10, shape = 16) +
-  geom_point(data = plot.displ_BBC_home, aes(x = log(x), y = log(y), col = "BBC home"), alpha = 5/10, shape = 16) +
-  geom_point(data = plot.displ_Sekara_S9, aes(x = log(x), y = log(y), col = "Sekara et al."), alpha = 5/10, shape = 16) +
-  geom_line(data = fit.displ_BBC_total, aes(x = log(x), y = log(y), col = "BBC total"), size = 1.03) +
-  geom_line(data = fit.displ_BBC_work, aes(x = log(x), y = log(y), col = "BBC work/school"), size = 1.03) +
-  geom_line(data = fit.displ_BBC_other, aes(x = log(x), y = log(y), col = "BBC other"), size = 1.03) +
-  geom_line(data = fit.displ_BBC_home, aes(x = log(x), y = log(y), col = "BBC home"), size = 1.03) +
-  geom_line(data = fit.displ_Sekara_S9, aes(x = log(x), y = log(y), col = "Sekara et al."), size = 1.03) +
-  geom_text(data = df_geomtext, aes(x = x, y = y, label = label, col = colour), hjust = "left", parse = TRUE, show.legend = FALSE) +
+  geom_point(data = plot.displ_BBC_total, aes(x = x, y = y, col = "BBC total"), alpha = 5/10, shape = 16) +
+  geom_point(data = plot.displ_BBC_work, aes(x = x, y = y, col = "BBC work/school"), alpha = 5/10, shape = 16) +
+  geom_point(data = plot.displ_BBC_other, aes(x = x, y = y, col = "BBC other"), alpha = 5/10, shape = 16) +
+  geom_point(data = plot.displ_BBC_home, aes(x = x, y = y, col = "BBC home"), alpha = 5/10, shape = 16) +
+  geom_point(data = plot.displ_Sekara_S9, aes(x = x, y = y, col = "Sekara et al."), alpha = 5/10, shape = 16) +
+  geom_line(data = fit.displ_BBC_total, aes(x = x, y = y, col = "BBC total"), size = 1.03) +
+  geom_line(data = fit.displ_BBC_work, aes(x = x, y = y, col = "BBC work/school"), size = 1.03) +
+  geom_line(data = fit.displ_BBC_other, aes(x = x, y = y, col = "BBC other"), size = 1.03) +
+  geom_line(data = fit.displ_BBC_home, aes(x = x, y = y, col = "BBC home"), size = 1.03) +
+  geom_line(data = fit.displ_Sekara_S9, aes(x = x, y = y, col = "Sekara et al."), size = 1.03) +
+  geom_text(data = df_geomtext, aes(x = 10^x, y = exp(y), label = label, col = colour), hjust = "left", parse = TRUE, show.legend = FALSE) +
   scale_color_manual(values = my_col5,
                      limits = c("Sekara et al.", "BBC work/school", "BBC total", "BBC other", "BBC home")) +
-  theme_bw() +
+  theme_pubr(base_size = 11, base_family = "Palatino") +
+  theme(legend.position = "right")+
   labs(colour = "Data source") +
-  annotation_logticks() +
   scale_x_continuous(
-    labels = scales::trans_format("exp", scales::math_format(.x))
+    labels = trans_format('log10', math_format(10^.x)),
+    trans = scales::log10_trans(),
   ) +
+  scale_y_continuous(
+    labels = trans_format('log10', math_format(10^.x)),
+    trans = scales::log10_trans()
+  ) +
+  annotation_logticks() +
   # scale_y_continuous(
   #   labels = scales::trans_format("exp", scales::math_format(.x))
   # ) +
-  ylab("Log CDF") + xlab("Size of gatherings")
+  ylab("Pr(K > k)") + xlab("Size of gatherings (k)")
 plotFig3
-#
+ a#
 
+ 
+# CCDF versions of 1 and 2
+ plotFig1cdf <-  ggplot() +
+   geom_point(data = plot.displ_BBC_total, aes(x = x, y = y, col = "BBC total"), shape = 16, size = 1.5) +
+   geom_point(data = plot.displ_BBC_work, aes(x = x, y = y, col = "BBC work/school"), shape = 16, size = 1.5) +
+   geom_point(data = plot.displ_BBC_other, aes(x = x, y = y, col = "BBC other"), shape = 16, size = 1.5) +
+   geom_point(data = plot.displ_BBC_home, aes(x = x, y = y, col = "BBC home"), shape = 16, size = 1.5) +
+   geom_point(data = plot.displ_Sekara_S9, aes(x = x, y = y, col = "Sekara et al."), shape = 16, size = 1.5) +
+   scale_color_manual(values = my_col5,
+                      limits = c("Sekara et al.", "BBC work/school", "BBC total", "BBC other", "BBC home")) +
+   theme_pubr(base_size = 11, base_family = "Palatino") +
+   theme(legend.position = "none")+
+   labs(colour = "Data source") +
+   scale_x_continuous(
+     labels = trans_format('log10', math_format(10^.x)),
+     trans = scales::log10_trans(),
+   ) +
+   scale_y_continuous(
+     labels = trans_format('log10', math_format(10^.x)),
+     trans = scales::log10_trans()
+   ) +
+   annotation_logticks() +
+   # scale_y_continuous(
+   #   labels = scales::trans_format("exp", scales::math_format(.x))
+   # ) +
+   ylab("Pr(K > k)") + xlab("Size of gatherings (k)")
+ plotFig1cdf
 # TODO : Future : Get how to plot power law estimation line for PDF.
 #
 
+pdf("3_results/bbcsekara.pdf", width = 4.5, height = 3.5)
+ plotFig1 %>% print()
+dev.off()
 
+pdf("3_results/bbcsekara_cdf.pdf", width = 4.5, height = 3.5)
+plotFig1cdf %>% print()
+dev.off()
 
-#
+pdf("3_results/comix.pdf", width = 6.5, height = 5)
+plotFig2 %>% print()
+dev.off()
+
+pdf("3_results/bbcsekara_fit.pdf", width = 6.5, height = 4.5)
+plotFig3 %>% print()
+dev.off()
 ##
 ###
 ##

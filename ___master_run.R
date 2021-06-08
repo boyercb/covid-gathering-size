@@ -27,7 +27,7 @@ source("2_code/2_heterogeneity_in_q.R")
 
 source("2_code/3_heterogeneity_in_S.R")
 
-source("2_code/4_lorenz_plots.R")
+source("2_code/4_lorenz_curves.R")
 
 source("2_code/5_unconstrained_outbreak.R")
 
@@ -38,5 +38,3 @@ source("2_code/7_how_long_to_hold.R")
 source("2_code/8_time_dependent_interventions.R")
 
 source("2_code/9_sensitivity_analyses.R")
-
-
