@@ -241,22 +241,6 @@ head(DFcontacts)
 
 # Generate another DFcontactsprop with proportion of gatherings of each size, instead of count.
 DFcontactsprop <- DFcontacts %>%
-  # Here we divide by n_gatherings to get the distribution of gatherings instead of that of number of contacts.
-  mutate(
-    across(
-      c(BBC_home,
-        BBC_work,
-        BBC_other,
-        BBC_total,
-        COMIX_home,
-        COMIX_work,
-        COMIX_school,
-        COMIX_workschool,
-        COMIX_other,
-        COMIX_physical,
-        COMIX_tot,
-      ), ~ .x / n_gatherings)) %>%
-  # Here we get thre frequencies.
   mutate(BBC_homeprop = BBC_home / sum(BBC_home, na.rm = T),
          BBC_workprop = BBC_work / sum(BBC_work, na.rm = T),
          BBC_otherprop = BBC_other / sum(BBC_other, na.rm = T),
@@ -271,7 +255,6 @@ DFcontactsprop <- DFcontacts %>%
          COMIX_totprop = COMIX_tot / sum(COMIX_tot, na.rm = T)) %>%
   select(-Sekara_S9prop, Sekara_S9prop)
 head(DFcontactsprop)
-#sum(DFcontactsprop$BBC_homeprop, na.rm = T)
 #
 
 # Plot them ! 
@@ -435,7 +418,6 @@ head(DFcontactsprop)
 
 # BBC_total
 DF_BBC_total <- DFcontactsprop %>%
-  mutate(BBC_total = round(BBC_total, 0)) %>%
   select(n_gatherings, BBC_total) %>%
   filter(!is.na(BBC_total)) %>%
   as_tibble() %>%
@@ -456,7 +438,6 @@ fit.displ_BBC_total <- lines(displ_BBC_total, draw = F)
 
 # BBC_work
 DF_BBC_work <- DFcontactsprop %>%
-  mutate(BBC_work = round(BBC_work, 0)) %>%
   select(n_gatherings, BBC_work) %>%
   filter(!is.na(BBC_work)) %>%
   as_tibble() %>%
@@ -475,7 +456,6 @@ fit.displ_BBC_work <- lines(displ_BBC_work, draw = F)
 
 # BBC_other
 DF_BBC_other <- DFcontactsprop %>%
-  mutate(BBC_other = round(BBC_other, 0)) %>%
   select(n_gatherings, BBC_other) %>%
   filter(!is.na(BBC_other)) %>%
   as_tibble() %>%
@@ -494,7 +474,6 @@ fit.displ_BBC_other <- lines(displ_BBC_other, draw = F)
 
 # BBC_home
 DF_BBC_home <- DFcontactsprop %>%
-  mutate(BBC_home = round(BBC_home, 0)) %>%
   select(n_gatherings, BBC_home) %>%
   filter(!is.na(BBC_home)) %>%
   as_tibble() %>%
@@ -529,7 +508,8 @@ displ_Sekara_S9$setXmin(est_Sekara_S9)
 plot.displ_Sekara_S9 <- plot(displ_Sekara_S9, draw = F)
 fit.displ_Sekara_S9 <- lines(displ_Sekara_S9, draw = F)
 
-
+d <- dislnorm$new(DF_Sekara_S9)
+estimate_xmin(d)
 # Generate Figure 3 CDF
 # Generate geom text to put alpha and xmin values on Figure 3 
 df_geomtext <- data.frame(x = c(0.1, 0.1, 0.1, 0.1, 0.1),
@@ -581,9 +561,9 @@ plotFig3 <- ggplot() +
   # ) +
   ylab("Pr(K > k)") + xlab("Size of gatherings (k)")
 plotFig3
-#
+ a#
 
-
+ 
 # CCDF versions of 1 and 2
  plotFig1cdf <-  ggplot() +
    geom_point(data = plot.displ_BBC_total, aes(x = x, y = y, col = "BBC total"), shape = 16, size = 1.5) +

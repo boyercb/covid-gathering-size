@@ -1,4 +1,6 @@
 library(tidyverse)
+library(ggpubr)
+library(poweRlaw)
 
 tau <- 0.08
 pi <- 0.05
@@ -48,26 +50,54 @@ ggplot(df, aes(x = k, y = x)) +
 dev.off()
 
 
-pdf("3_results/powerlaw_example.pdf", width = 4.5, height = 3.5)
-df <- tibble(
-  X = rpldis(10000, 1, 2.5)
-) 
-df <- df %>% 
-  count(X) %>%
-  mutate(
-    n_sum = sum(n) - lag(cumsum(n), default = 0),
-    p = n_sum / sum(n)
-    )
-  
-#%>% count(X)
+N <- 1:1000
 
-ggplot(df, aes(x = X, y = p)) + 
-  geom_point() +
+df <- tibble(
+  N = N,
+  X_pl = dpldis(N, 1, 1.5),
+  X_ln = dlnorm(N, 0, 1),
+  X_yu = VGAM::dyules(N, 1.25),
+ # X_ll = exp(rlogis(10000, 1, 0.9)),
+  X_exp = dexp(N, 1),
+) 
+
+df <- df %>% 
+  pivot_longer(cols = -c(N)) %>%
+  separate(name, c("variable", "distribution")) %>%
+  mutate(
+    distribution = case_when(
+      distribution == "pl" ~ "Power law",
+      distribution == "ln" ~ "Log-normal",
+      distribution == "yu" ~ "Yule",
+      distribution == "exp" ~ "Exponential"    
+    ),
+    distribution = factor(distribution, 
+                          levels = c("Power law", "Yule", "Log-normal", "Exponential"))
+    )
+  # mutate(value = round(value)) %>%
+  # group_by(distribution) %>%
+  # count(value) %>%
+  # mutate(
+  #   n_sum = sum(n) - lag(cumsum(n), default = 0),
+  #   p = n_sum / sum(n)
+  #   )
+  # 
+
+df <- filter(df, value > 10^(-4))
+pdf("3_results/powerlaw_example.pdf", width = 4.5, height = 3.5)
+ggplot(df, aes(x = N, y = value, color = distribution, linetype = distribution)) + 
+  geom_line() +
+  #geom_smooth(method = "gam", se = F) +
+  scale_color_grey(name = "") +
+  scale_linetype(name = "") +
   scale_y_continuous(trans = "log10", labels = scales::trans_format("log10", scales::math_format(10^.x))) + 
   scale_x_continuous(trans = "log10", labels = scales::trans_format("log10", scales::math_format(10^.x))) + 
   annotation_logticks() +
   coord_cartesian() +
   theme_pubr(base_size = 10, base_family = "Palatino") +
+  theme(
+    legend.position = c(0.85, 0.85)
+  ) +
   #gatherings_theme() +
   labs(
     x = "Gathering size (k)",
