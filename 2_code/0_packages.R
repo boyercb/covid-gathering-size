@@ -1,0 +1,8 @@
+library(tidyverse)
+library(magrittr, exclude = c("extract", "set_names"))
+library(ggpubr)
+library(poweRlaw)
+library(readxl)
+library(scales, exclude = c("discard", "col_factor"))
+library(progressr)
+library(furrr)
