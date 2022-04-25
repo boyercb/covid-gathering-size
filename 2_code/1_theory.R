@@ -5,8 +5,8 @@ source('2_code/0_packages.R')
 # create figure showing relationship between gathering size and expected 
 # incident cases at a given size
 tau <- 0.08
-pi <- 0.05
-ps <- 0.80
+pi <- 0.01
+ps <- 0.99
 
 df <- tibble(
   k = seq(1, 100),
@@ -19,7 +19,7 @@ ggplot(df, aes(x = k, y = x)) +
   annotate(
     "text",
     x = 45,
-    y = 5,
+    y = 1,
     label = "k * p[s] * (1 - (1 - tau)^{k*p[i]})",
     family = "Palatino",
     parse = TRUE,
