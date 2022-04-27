@@ -25,6 +25,8 @@ ggplot(df, aes(x = k, y = x)) +
     parse = TRUE,
     hjust = "left"
   ) +
+  scale_x_continuous(breaks= c(seq(1,10, by=1), seq(20, 100, by=10), 200),
+                     labels = c(1, rep("",8), 10, rep("",3), 50, rep("", 4), 100, "")) +   #annotation_logticks(sides ="b") +
   theme_pubr(base_size = 10, base_family = "Palatino") +
   labs(
     x = "Gathering size (k)",
@@ -67,8 +69,11 @@ ggplot(df, aes(x = N, y = value, color = distribution, linetype = distribution))
   scale_color_grey(name = "") +
   scale_linetype(name = "") +
   scale_y_continuous(trans = "log10", labels = scales::trans_format("log10", scales::math_format(10^.x))) + 
-  scale_x_continuous(trans = "log10", labels = scales::trans_format("log10", scales::math_format(10^.x))) + 
-  annotation_logticks() +
+  scale_x_continuous(trans = "log10",
+                     breaks= c(seq(1,10, by=1), seq(20, 100, by=10), 200),
+                     labels = c(1, rep("",8), 10, rep("",3), 50, rep("", 4), 100, "")) + 
+# scale_x_continuous(trans = "log10", labels = scales::trans_format("log10", scales::math_format(10^.x))) + 
+# annotation_logticks() +
   coord_cartesian() +
   theme_pubr(base_size = 10, base_family = "Palatino") +
   theme(
