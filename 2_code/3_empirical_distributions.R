@@ -367,13 +367,13 @@ plotFig3a <- ggplot(DFcontactsprop) +
   scale_color_manual(values = my_col5,
                      limits = c("CNS university students", "BBC work/school", "BBC total", "BBC other", "BBC home")) +
   theme_pubr(base_size = 11, base_family = "Palatino") +
-  theme(legend.position = c(0.85, 0.75))+
+  theme(legend.position = c(0.8, 0.8), legend.background = element_blank(), legend.title=element_blank())+
   scale_x_log10() +
   scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
                 labels = trans_format("log10", math_format(10^.x))) +
   annotation_logticks() +
   labs(colour = "Data source") +
-  ylab("Pr(K = k)") + xlab("Size of gatherings (k)")
+  ylab("Pr(K = k)") + xlab("Size of gatherings (k)") 
 plotFig3a
 
 ## Figure 3b - CDF
@@ -389,14 +389,9 @@ plotFig3b <-
   theme_pubr(base_size = 11, base_family = "Palatino") +
   theme(legend.position = "none")+
   labs(colour = "Data source") +
-  scale_x_continuous(
-    labels = trans_format('log10', math_format(10^.x)),
-    trans = scales::log10_trans(),
-  ) +
-  scale_y_continuous(
-    labels = trans_format('log10', math_format(10^.x)),
-    trans = scales::log10_trans()
-  ) +
+  scale_x_log10() +
+  scale_y_log10(breaks = trans_breaks("log10", function(x) 10^x),
+                labels = trans_format("log10", math_format(10^.x))) +
   annotation_logticks() +
   ylab("Pr(K > k)") + xlab("Size of gatherings (k)")
 plotFig3b
@@ -408,7 +403,7 @@ plotFig3b
 # Generate Figure 4 CDF
 # Generate geom text to put alpha and xmin values on Figure 3 
 df_geomtext <- data.frame(x = c(0.1, 0.1, 0.1, 0.1, 0.1),
-                          y = c(-9, -8, -10, -11, -7),
+                          y = c(-8.5, -7.5, -9.5, -10.5, -6.5),
                           xmin = c(est_BBC_total$xmin,
                                    est_BBC_work$xmin,
                                    est_BBC_other$xmin,
@@ -440,12 +435,9 @@ plotFig4 <-
   scale_color_manual(values = my_col5,
                      limits = c("CNS university students", "BBC work/school", "BBC total", "BBC other", "BBC home")) +
   theme_pubr(base_size = 11, base_family = "Palatino") +
-  theme(legend.position = "right")+
+  theme(legend.position = c(0.8, 0.8), legend.background = element_blank(), legend.title=element_blank())+
   labs(colour = "Data source") +
-  scale_x_continuous(
-    labels = trans_format('log10', math_format(10^.x)),
-    trans = scales::log10_trans(),
-  ) +
+  scale_x_log10() +
   scale_y_continuous(
     labels = trans_format('log10', math_format(10^.x)),
     trans = scales::log10_trans()
@@ -545,11 +537,11 @@ plotFig6
 
 
 
-pdf("3_results/fig3a.pdf", width = 4.5, height = 3.5)
+pdf("3_results/fig3a.pdf", width = 5, height = 4)
 plotFig3a %>% print()
 dev.off()
 
-pdf("3_results/fig3b.pdf", width = 4.5, height = 3.5)
+pdf("3_results/fig3b.pdf", width = 5, height = 4)
 plotFig3b %>% print()
 dev.off()
 
@@ -573,9 +565,10 @@ calc_moments <- function(pdfs) {
       M_1 = sum(n_gatherings * value, na.rm = TRUE),
       M_2 = sum(n_gatherings^2 * value, na.rm = TRUE),
       var = M_2 - M_1^2,
-      sd = sqrt(var),
       q90 = first(n_gatherings[cumsum(value[!is.na(value)]) >= 0.90]), 
       q99 = first(n_gatherings[cumsum(value[!is.na(value)]) >= 0.99]), 
+      min = min(n_gatherings[!is.na(value)], na.rm = TRUE),
+      max = max(n_gatherings[!is.na(value)], na.rm = TRUE),
       .groups = 'drop'
     )
 }
@@ -590,15 +583,19 @@ empirical_pdfs <-
   pivot_longer(cols = ends_with("prop")) %>%
   select(n_gatherings, name, value)
 
-calc_moments(empirical_pdfs)
-
-DFcontactsprop %>% summarise(
-  Sekara_S9 = sum(Sekara_S9, na.rm = TRUE),
-  BBC_home = sum(BBC_home, na.rm = TRUE),
-  BBC_work = sum(BBC_work, na.rm = TRUE),
-  BBC_other = sum(BBC_other, na.rm = TRUE),
-  BBC_total = sum(BBC_total, na.rm = TRUE)
-)
+calc_moments(empirical_pdfs) %>%
+  select(-M_2) %>%
+  add_column(
+    N = DFcontactsprop %>% summarise(
+      BBC_home = sum(BBC_home, na.rm = TRUE),
+      BBC_other = sum(BBC_other, na.rm = TRUE),
+      BBC_total = sum(BBC_total, na.rm = TRUE),
+      BBC_work = sum(BBC_work, na.rm = TRUE),
+      Sekara_S9 = sum(Sekara_S9, na.rm = TRUE)
+    ) %>% t()  %>% as.vector(),
+    .before = 'M_1'
+  ) %>%
+  knitr::kable(., format = "latex", digits = 1)
 
 
 #####################################
