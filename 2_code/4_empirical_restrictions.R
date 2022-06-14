@@ -261,24 +261,28 @@ empirical_results <-
     empirical_results
   )
 
+empirical_results %>%
+  filter(pi==0.01)
+
 pdf("3_results/rr_kmax_empirical.pdf", width = 4.5, height = 3.5)
-ggplot(empirical_results, aes(x = k_max, y = RR, color = fct_rev(name), group = fct_rev(name))) + 
+ggplot(empirical_results %>% filter(pi==0.01),
+       aes(x = k_max, y = RR, color = fct_rev(name), group = fct_rev(name))) + 
   geom_line(size = 1.05) +
   geom_hline(yintercept = 1, linetype = "dashed") +
   scale_color_manual(
-    name = "Data source", 
+    name = "", 
     values = my_col5,
-    labels = c("Sekara et al.",
+    labels = c("CNS university students",
                "BBC work/school",
                "BBC total",
                "BBC other",
                "BBC home")) +
   labs(
     x = bquote(k[max]),
-    y = bquote(E(X[t]^{k[max]})/E(X[t]))
+    y = bquote(E(X^{k[max]})/E(X))
   ) +
   theme_pubr(base_size = 11, base_family = "Palatino") +
-  theme(legend.position = c(0.85, 0.35)) 
+  theme(legend.position = c(0.78, 0.35)) 
 dev.off()
 
 pdf("3_results/rr_kmax_log10_empirical.pdf", width = 4.5, height = 3.5)
@@ -289,14 +293,14 @@ ggplot(empirical_results, aes(x = k_max, y = RR, color = fct_rev(name), group = 
     name = "Data source", 
     values = my_col5,
     guide = FALSE,
-    labels = c("Sekara et al.",
+    labels = c("CNS university students",
                "BBC work/school",
                "BBC total",
                "BBC other",
                "BBC home")) +
   labs(
     x = bquote(k[max]),
-    y = bquote(E(X[t]^{k[max]})/E(X[t]))
+    y = bquote(E(X^{k[max]})/E(X))
   ) +
   scale_x_log10() +
   annotation_logticks(sides = "b") +
