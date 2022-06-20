@@ -1,5 +1,6 @@
 source('2_code/0_packages.R')
 source('2_code/1_functions.R')
+source('2_code/3_empirical_distributions.R')
 
 rerun_simulation <- FALSE
 
@@ -71,7 +72,7 @@ ggplot(
   theme(legend.position = c(0.85, 0.35)) 
 dev.off()
 
-pdf("3_results/rr_kmax_pipr_sensitivity.pdf", width = 6.5, height = 5)
+pdf("3_results/rr_kmax_pipr_sensitivity.pdf", width = 10, height = 5)
 ggplot(
   filter(results, pr %in% c(0, 0.25, 0.75) & tau == 0.08),
   aes(
@@ -115,7 +116,7 @@ ggplot(
   theme(legend.position = "bottom") 
 dev.off()
 
-pdf("3_results/rr_kmax_pipr_sensitivity_absolute.pdf", width = 6.5, height = 5)
+pdf("3_results/rr_kmax_pipr_sensitivity_absolute.pdf", width = 9.5, height = 5)
 ggplot(
   filter(results, pr %in% c(0, 0.25, 0.75) & tau == 0.08 & pi == 0.01),
   aes(
@@ -308,7 +309,7 @@ ggplot(empirical_results, aes(x = k_max, y = RR, color = fct_rev(name), group = 
   theme(legend.position = c(0.85, 0.35)) 
 dev.off()
 
-pdf("3_results/rr_kmax_empirical_pipr_sensitivity.pdf", width = 6.5, height = 5)
+pdf("3_results/rr_kmax_empirical_pipr_sensitivity.pdf", width = 8.4, height = 5)
 ggplot(
   filter(empirical_results, pr %in% c(0, 0.25, 0.75)),
   aes(
@@ -353,3 +354,4 @@ ggplot(
   theme_pubr(base_size = 11, base_family = "Palatino") +
   theme(legend.position = "bottom") 
 dev.off()
+

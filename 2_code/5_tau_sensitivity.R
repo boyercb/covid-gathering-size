@@ -211,7 +211,7 @@ sens3_results <-
 
 # plots -------------------------------------------------------------------
 
-pdf("3_results/rr_kmax_tau_sens1_mean.pdf", width = 6.5, height = 5)
+pdf("3_results/rr_kmax_tau_sens1_mean.pdf", width = 9.5, height = 5)
 ggplot(
   sens1_results,
   aes(
@@ -245,7 +245,7 @@ ggplot(
   theme(legend.position = c(0.93, 0.20)) 
 dev.off()
 
-pdf("3_results/rr_kmax_tau_sens1_w_sd.pdf", width = 6.5, height = 5)
+pdf("3_results/rr_kmax_tau_sens1_w_sd.pdf", width = 9, height = 5)
 ggplot(
   sens1_results,
   aes(
@@ -279,7 +279,7 @@ ggplot(
   theme(legend.position = c(0.93, 0.20)) 
 dev.off()
 
-pdf("3_results/rr_kmax_tau_sens2.pdf", width = 6.5, height = 5)
+pdf("3_results/rr_kmax_tau_sens2.pdf", width = 9, height = 5)
 ggplot(
   sens2_results,
   aes(
@@ -311,7 +311,7 @@ ggplot(
   theme(legend.position = c(0.93, 0.20)) 
 dev.off()
 
-pdf("3_results/rr_kmax_tau_sens3.pdf", width = 6.5, height = 5)
+pdf("3_results/rr_kmax_tau_sens3.pdf", width = 9, height = 5)
 ggplot(
   sens3_results,
   aes(
@@ -344,10 +344,10 @@ ggplot(
     y = bquote(E(X^{k[max]})/E(X))
   ) +
   theme_pubr(base_size = 11, base_family = "Palatino") +
-  theme(legend.position = c(0.93, 0.20)) 
+  theme(legend.position = c(0.91, 0.17)) 
 dev.off()
 
-
+pdf("3_results/rr_kmax_tau_sens4.pdf", width = 6.5, height = 5)
 ggplot(
   mutate(sens3_results, diff = X_0 - X_1),
   aes(
@@ -368,5 +368,6 @@ ggplot(
     y = bquote(E(X^{k[max]})/E(X))
   ) +
   theme_pubr(base_size = 11, base_family = "Palatino") +
-  theme(legend.position = c(0.95, 0.20)) 
+  theme(legend.position = c(0.90, 0.70)) 
+dev.off()
 
