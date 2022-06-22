@@ -609,6 +609,7 @@ calc_moments(empirical_pdfs) %>%
 
 # fit discrete log normal
 dislnorm_BBC_total <- dislnorm$new(DF_BBC_total)
+dislnorm_BBC_total$setXmin(4)
 est_BBC_total <- estimate_pars(dislnorm_BBC_total)
 
 # set pars and get plot data
@@ -620,6 +621,7 @@ fit.dislnorm_BBC_total <- lines(dislnorm_BBC_total, draw = F)
 
 # fit discrete log normal
 dislnorm_BBC_work <- dislnorm$new(DF_BBC_work)
+dislnorm_BBC_work$setXmin(13)
 est_BBC_work <- estimate_pars(dislnorm_BBC_work)
 
 # set pars and get plot data
@@ -631,6 +633,7 @@ fit.dislnorm_BBC_work <- lines(dislnorm_BBC_work, draw = F)
 
 # fit discrete log normal
 dislnorm_BBC_other <- dislnorm$new(DF_BBC_other)
+dislnorm_BBC_other$setXmin(8)
 est_BBC_other <- estimate_pars(dislnorm_BBC_other)
 
 # set pars and get plot data
@@ -642,6 +645,7 @@ fit.dislnorm_BBC_other <- lines(dislnorm_BBC_other, draw = F)
 
 # fit discrete log normal
 dislnorm_BBC_home <- dislnorm$new(DF_BBC_home)
+dislnorm_BBC_home$setXmin(4)
 est_BBC_home <- estimate_pars(dislnorm_BBC_home)
 
 # set pars and get plot data
@@ -660,7 +664,6 @@ est_Sekara_S9 <- estimate_pars(dislnorm_Sekara_S9)
 dislnorm_Sekara_S9$setPars(est_Sekara_S9)
 plot.dislnorm_Sekara_S9 <- plot(dislnorm_Sekara_S9, draw = F)
 fit.dislnorm_Sekara_S9 <- lines(dislnorm_Sekara_S9, draw = F)
-
 
 
 # Generate Figure A1 CDF
@@ -701,7 +704,7 @@ plotFigA1 <-
   scale_color_manual(values = my_col5,
                      limits = c("CNS university students", "BBC work/school", "BBC total", "BBC other", "BBC home")) +
   theme_pubr(base_size = 11, base_family = "Palatino") +
-  theme(legend.position = "right")+
+  theme(legend.position = c(0.8, 0.8), legend.background = element_blank(), legend.title=element_blank())+
   labs(colour = "Data source") +
   scale_x_continuous(
     labels = trans_format('log10', math_format(10^.x)),
@@ -717,6 +720,40 @@ plotFigA1 <-
   # ) +
   ylab("Pr(K > k)") + xlab("Size of gatherings (k)")
 plotFigA1
+
+pdf("3_results/lognormal.pdf", width = 6.5, height = 4.5)
+plotFigA1 %>% print()
+dev.off()
+
+
+ln_df <- tibble(
+  scenario1 = rlnorm(10000, 0, 0.5),
+  scenario2 = rlnorm(10000, 0, 1),
+  scenario3 = rlnorm(10000, 0, 2)
+)
+
+ln_df <-
+  pivot_longer(ln_df, cols = everything()) %>%
+  mutate(
+    name = factor(name, labels = c(bquote(sigma == 0.5), bquote(sigma == 1) , bquote(sigma == 2)))
+  )
+
+pdf("3_results/ln_distribution.pdf", width = 6.5, height = 3)
+ggplot(ln_df, aes(x = value)) +
+  facet_wrap(~name, scales = "free", nrow = 1, labeller = label_parsed) +
+  geom_histogram(aes(y = ..density..),
+                 bins = 50,
+                 color = "lightblue",
+                 fill = "lightblue") +
+  coord_cartesian(expand = FALSE, clip = "off") +
+  # geom_vline(xintercept = 0.08, linetype = "dashed") +
+  theme_classic(base_size = 10, base_family = "Palatino") +
+  theme(strip.background = element_blank()) +
+  labs(
+    x = NULL,
+    y = NULL
+  )
+dev.off()
 
 
 #####################################
@@ -857,4 +894,157 @@ lines(displ_Sekara_S9)
 lines(dislnorm_Sekara_S9, col = "red")
 lines(pllogis(1:315, location = 1.6953054, scale = 0.5, lower.tail = F), col = "blue")
 
-compare_distributions(dislnorm_Sekara_S9, displ_Sekara_S9)
+
+
+
+# compare distributions ---------------------------------------------------
+
+# discrete power law ------------------------------------------------------
+
+# Fit for 5 distributions : BBC total, home, work/school, other and Sekara.
+
+# BBC_total
+
+# fit discrete discrete power law
+displ_BBC_total <- displ$new(DF_BBC_total)
+displ_BBC_total$setXmin(5)
+est_BBC_total <- estimate_pars(displ_BBC_total)
+
+# set pars and get plot data
+displ_BBC_total$setPars(est_BBC_total)
+plot.displ_BBC_total <- plot(displ_BBC_total, draw = F)
+fit.displ_BBC_total <- lines(displ_BBC_total, draw = F)
+
+# BBC_work
+
+# fit discrete discrete power law
+displ_BBC_work <- displ$new(DF_BBC_work)
+displ_BBC_work$setXmin(5)
+est_BBC_work <- estimate_pars(displ_BBC_work)
+
+# set pars and get plot data
+displ_BBC_work$setPars(est_BBC_work)
+plot.displ_BBC_work <- plot(displ_BBC_work, draw = F)
+fit.displ_BBC_work <- lines(displ_BBC_work, draw = F)
+
+# BBC_other
+
+# fit discrete discrete power law
+displ_BBC_other <- displ$new(DF_BBC_other)
+displ_BBC_other$setXmin(5)
+est_BBC_other <- estimate_pars(displ_BBC_other)
+
+# set pars and get plot data
+displ_BBC_other$setPars(est_BBC_other)
+plot.displ_BBC_other <- plot(displ_BBC_other, draw = F)
+fit.displ_BBC_other <- lines(displ_BBC_other, draw = F)
+
+# BBC_home
+
+# fit discrete discrete power law
+displ_BBC_home <- displ$new(DF_BBC_home)
+displ_BBC_home$setXmin(5)
+est_BBC_home <- estimate_pars(displ_BBC_home)
+
+# set pars and get plot data
+displ_BBC_home$setPars(est_BBC_home)
+plot.displ_BBC_home <- plot(displ_BBC_home, draw = F)
+fit.displ_BBC_home <- lines(displ_BBC_home, draw = F)
+
+# Sekara_S9
+
+# fit discrete log normal
+displ_Sekara_S9 <- displ$new(DF_Sekara_S9)
+displ_Sekara_S9$setXmin(5)
+est_Sekara_S9 <- estimate_pars(displ_Sekara_S9)
+
+# set pars and get plot data
+displ_Sekara_S9$setPars(est_Sekara_S9)
+plot.displ_Sekara_S9 <- plot(displ_Sekara_S9, draw = F)
+fit.displ_Sekara_S9 <- lines(displ_Sekara_S9, draw = F)
+
+
+
+# lognormal ---------------------------------------------------------------
+
+# BBC_total
+
+# fit discrete log normal
+dislnorm_BBC_total <- dislnorm$new(DF_BBC_total)
+dislnorm_BBC_total$setXmin(5)
+est_BBC_total <- estimate_pars(dislnorm_BBC_total)
+
+# set pars and get plot data
+dislnorm_BBC_total$setPars(est_BBC_total)
+plot.dislnorm_BBC_total <- plot(dislnorm_BBC_total, draw = F)
+fit.dislnorm_BBC_total <- lines(dislnorm_BBC_total, draw = F)
+
+# BBC_work
+
+# fit discrete log normal
+dislnorm_BBC_work <- dislnorm$new(DF_BBC_work)
+dislnorm_BBC_work$setXmin(5)
+est_BBC_work <- estimate_pars(dislnorm_BBC_work)
+
+# set pars and get plot data
+dislnorm_BBC_work$setPars(est_BBC_work)
+plot.dislnorm_BBC_work <- plot(dislnorm_BBC_work, draw = F)
+fit.dislnorm_BBC_work <- lines(dislnorm_BBC_work, draw = F)
+
+# BBC_other
+
+# fit discrete log normal
+dislnorm_BBC_other <- dislnorm$new(DF_BBC_other)
+dislnorm_BBC_other$setXmin(5)
+est_BBC_other <- estimate_pars(dislnorm_BBC_other)
+
+# set pars and get plot data
+dislnorm_BBC_other$setPars(est_BBC_other)
+plot.dislnorm_BBC_other <- plot(dislnorm_BBC_other, draw = F)
+fit.dislnorm_BBC_other <- lines(dislnorm_BBC_other, draw = F)
+
+# BBC_home
+
+# fit discrete log normal
+dislnorm_BBC_home <- dislnorm$new(DF_BBC_home)
+dislnorm_BBC_home$setXmin(5)
+est_BBC_home <- estimate_pars(dislnorm_BBC_home)
+
+# set pars and get plot data
+dislnorm_BBC_home$setPars(est_BBC_home)
+plot.dislnorm_BBC_home <- plot(dislnorm_BBC_home, draw = F)
+fit.dislnorm_BBC_home <- lines(dislnorm_BBC_home, draw = F)
+
+# Sekara_S9
+
+# fit discrete log normal
+dislnorm_Sekara_S9 <- dislnorm$new(DF_Sekara_S9)
+dislnorm_Sekara_S9$setXmin(5)
+est_Sekara_S9 <- estimate_pars(dislnorm_Sekara_S9)
+
+# set pars and get plot data
+dislnorm_Sekara_S9$setPars(est_Sekara_S9)
+plot.dislnorm_Sekara_S9 <- plot(dislnorm_Sekara_S9, draw = F)
+fit.dislnorm_Sekara_S9 <- lines(dislnorm_Sekara_S9, draw = F)
+
+
+# conduct test ------------------------------------------------------------
+
+
+vuong <- list(
+  compare_distributions(dislnorm_BBC_home, displ_BBC_home),
+  compare_distributions(dislnorm_BBC_work, displ_BBC_work),
+  compare_distributions(dislnorm_BBC_other, displ_BBC_other),
+  compare_distributions(dislnorm_BBC_total, displ_BBC_total),
+  compare_distributions(dislnorm_Sekara_S9, displ_Sekara_S9)
+)
+
+lapply(vuong, get, x = "test_statistic") 
+lapply(vuong, get, x = "p_two_sided") 
+
+       plot(vuong[[1]])
+pdata <- lapply(vuong, function(x) plot(x))
+
+ggplot(bind_rows(pdata, .id = "source"), aes(x = x, y = y)) +
+  geom_point()
+

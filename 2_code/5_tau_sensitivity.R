@@ -10,20 +10,28 @@ rerun_simulation <- TRUE
 # first plot our distribution choices
 
 beta_df <- tibble(
-  scenario1 = rbeta(10000, 0.08, 0.92),
+  scenario3 = rbeta(10000, 0.08, 0.92),
   scenario2 = rbeta(10000, 0.8, 9.2),
-  scenario3 = rbeta(10000, 800, 9200)
+  scenario1 = rbeta(10000, 800, 9200)
 )
 
 beta_df <-
-  pivot_longer(beta_df, cols = everything())
+  pivot_longer(beta_df, cols = everything()) %>%
+  mutate(
+    name = factor(name, labels = c(bquote(phi == 10 * ",000"), bquote(phi == 10) , bquote(phi == 1)))
+  )
 
-pdf("3_results/beta_distribution.pdf", width = 6.5, height = 5)
+pdf("3_results/beta_distribution.pdf", width = 6.5, height = 3)
 ggplot(beta_df, aes(x = value)) +
-  facet_grid(~name, scales = "free_x") +
-  geom_histogram(bins = 50) +
+  facet_wrap(~name, scales = "free", nrow = 1, labeller = label_parsed) +
+  geom_histogram(aes(y = ..density..),
+                 bins = 50,
+                 color = "lightblue",
+                 fill = "lightblue") +
+  coord_cartesian(expand = FALSE, clip = "off") +
   geom_vline(xintercept = 0.08, linetype = "dashed") +
-  theme_minimal(base_size = 10, base_family = "Palatino") +
+  theme_classic(base_size = 10, base_family = "Palatino") +
+  theme(strip.background = element_blank()) +
   labs(
     x = NULL,
     y = NULL
@@ -86,10 +94,11 @@ sens1_results <-
   sens1_params %>%
   mutate(
     dispersion = map_chr(tau_params, function (x) case_when(
-      x[1] == 0.08 ~ "0.5",
-      x[1] == 0.8 ~ "0.1",
-      x[1] == 800 ~ "0.0001"
-    )) 
+      x[1] == 0.08 ~ "1",
+      x[1] == 0.8 ~ "10",
+      x[1] == 800 ~ "10,000"
+    )),
+    dispersion = factor(dispersion, levels = c("10,000", "10", "1"))
   ) %>%
   bind_cols(
     RR = sens1_expected_rate$RR,
@@ -211,7 +220,8 @@ sens3_results <-
 
 # plots -------------------------------------------------------------------
 
-pdf("3_results/rr_kmax_tau_sens1_mean.pdf", width = 9.5, height = 5)
+
+pdf("3_results/rr_kmax_tau_sens1_mean.pdf", width = 6.5, height = 3.5)
 ggplot(
   sens1_results,
   aes(
@@ -219,7 +229,7 @@ ggplot(
     y = 1-RR,
     fill = fct_rev(factor(alpha)),
     color = fct_rev(factor(alpha)),
-    linetype = fct_rev(dispersion)
+    # linetype = fct_rev(dispersion)
   )
 ) +
   facet_grid(~ factor(alpha, labels = c(
@@ -231,55 +241,61 @@ ggplot(
     "alpha == 4"
   )), labeller = label_parsed) +
   geom_line(size = 1.05) +
-  geom_ribbon(aes(ymin = (1-RR) - 2 * RR_sd, ymax = (1 - RR) + 2 * RR_sd, alpha = fct_rev(dispersion))) +
+  geom_ribbon(aes(
+    ymin = (1 - RR) - 2 * RR_sd,
+    ymax = (1 - RR) + 2 * RR_sd,
+    alpha = fct_rev(dispersion)
+  ), color = NA) +
   geom_hline(yintercept = 1, linetype = "dashed") +
-  scale_color_brewer(name = parse(text="alpha"), palette = "Reds", direction = -1, guide = 'none') +
-  scale_fill_brewer(name = parse(text="alpha"), palette = "Reds", direction = -1, guide = 'none') +
-  scale_linetype_discrete(name = "dispersion") +
-  scale_alpha_discrete(name = "dispersion") +
+  scale_color_brewer(
+    name = parse(text = "alpha"),
+    palette = "Reds",
+    direction = -1,
+    guide = 'none'
+  ) +
   labs(
     x = bquote(k[max]),
     y = bquote(E(X^{k[max]})/E(X))
   ) +
-  theme_pubr(base_size = 11, base_family = "Palatino") +
+  theme_pubr(base_size = 8, base_family = "Palatino") +
   theme(legend.position = c(0.93, 0.20)) 
 dev.off()
 
-pdf("3_results/rr_kmax_tau_sens1_w_sd.pdf", width = 9, height = 5)
-ggplot(
-  sens1_results,
-  aes(
-    x = xmax,
-    y = 1-RR,
-    fill = fct_rev(factor(alpha)),
-    color = fct_rev(factor(alpha)),
-    linetype = fct_rev(dispersion)
-  )
-) +
-  facet_grid(~ factor(alpha, labels = c(
-    "alpha == 1.5",
-    "alpha == 2",
-    "alpha == 2.5",
-    "alpha == 3",
-    "alpha == 3.5",
-    "alpha == 4"
-  )), labeller = label_parsed) +
-  geom_line(size = 1.05) +
-  # geom_ribbon(aes(ymin = (1-RR) - 2 * RR_sd, ymax = (1 - RR) + 2 * RR_sd, alpha = fct_rev(dispersion))) +
-  geom_hline(yintercept = 1, linetype = "dashed") +
-  scale_color_brewer(name = parse(text="alpha"), palette = "Reds", direction = -1, guide = 'none') +
-  scale_fill_brewer(name = parse(text="alpha"), palette = "Reds", direction = -1, guide = 'none') +
-  scale_linetype_discrete(name = "dispersion") +
-  scale_alpha_discrete(name = "dispersion") +
-  labs(
-    x = bquote(k[max]),
-    y = bquote(E(X^{k[max]})/E(X))
-  ) +
-  theme_pubr(base_size = 11, base_family = "Palatino") +
-  theme(legend.position = c(0.93, 0.20)) 
-dev.off()
+# pdf("3_results/rr_kmax_tau_sens1_w_sd.pdf", width = 6.5, height = 5)
+# ggplot(
+#   sens1_results,
+#   aes(
+#     x = xmax,
+#     y = 1-RR,
+#     fill = fct_rev(factor(alpha)),
+#     color = fct_rev(factor(alpha)),
+#     linetype = fct_rev(dispersion)
+#   )
+# ) +
+#   facet_grid(~ factor(alpha, labels = c(
+#     "alpha == 1.5",
+#     "alpha == 2",
+#     "alpha == 2.5",
+#     "alpha == 3",
+#     "alpha == 3.5",
+#     "alpha == 4"
+#   )), labeller = label_parsed) +
+#   geom_line(size = 1.05) +
+#   # geom_ribbon(aes(ymin = (1-RR) - 2 * RR_sd, ymax = (1 - RR) + 2 * RR_sd, alpha = fct_rev(dispersion))) +
+#   geom_hline(yintercept = 1, linetype = "dashed") +
+#   scale_color_brewer(name = parse(text="alpha"), palette = "Reds", direction = -1, guide = 'none') +
+#   scale_fill_brewer(name = parse(text="alpha"), palette = "Reds", direction = -1, guide = 'none') +
+#   scale_linetype_discrete(name = "dispersion") +
+#   scale_alpha_discrete(name = "dispersion") +
+#   labs(
+#     x = bquote(k[max]),
+#     y = bquote(E(X^{k[max]})/E(X))
+#   ) +
+#   theme_pubr(base_size = 11, base_family = "Palatino") +
+#   theme(legend.position = c(0.93, 0.20)) 
+# dev.off()
 
-pdf("3_results/rr_kmax_tau_sens2.pdf", width = 9, height = 5)
+pdf("3_results/rr_kmax_tau_sens2.pdf", width = 6.5, height = 3.5)
 ggplot(
   sens2_results,
   aes(
@@ -303,15 +319,17 @@ ggplot(
   scale_color_brewer(name = parse(text="alpha"), palette = "Reds", direction = -1, guide = 'none') +
   scale_fill_brewer(name = parse(text="alpha"), palette = "Reds", direction = -1, guide = 'none') +
   scale_linetype_discrete(name = bquote(tau), breaks = c(0.25, 0.08, 0.01)) +
+  scale_x_continuous(n.breaks = 4) +
   labs(
     x = bquote(k[max]),
     y = bquote(E(X^{k[max]})/E(X))
   ) +
-  theme_pubr(base_size = 11, base_family = "Palatino") +
+  theme_pubr(base_size = 8, base_family = "Palatino") +
   theme(legend.position = c(0.93, 0.20)) 
 dev.off()
 
-pdf("3_results/rr_kmax_tau_sens3.pdf", width = 9, height = 5)
+
+pdf("3_results/rr_kmax_tau_sens3.pdf", width = 6.5, height = 3.5)
 ggplot(
   sens3_results,
   aes(
@@ -343,8 +361,9 @@ ggplot(
     x = bquote(k[max]),
     y = bquote(E(X^{k[max]})/E(X))
   ) +
-  theme_pubr(base_size = 11, base_family = "Palatino") +
-  theme(legend.position = c(0.91, 0.17)) 
+  scale_x_continuous(n.breaks = 4) +
+  theme_pubr(base_size = 8, base_family = "Palatino") +
+  theme(legend.position = c(0.93, 0.20)) 
 dev.off()
 
 pdf("3_results/rr_kmax_tau_sens4.pdf", width = 6.5, height = 5)
